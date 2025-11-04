@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blinking LED - Beat the Blink</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      position: relative;
+      overflow-x: hidden;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .clip-top, .clip-bottom {
+      position: absolute;
+      width: 100px;
+      opacity: 0.7;
+    }
+    .clip-top { top: 15px; left: 20px; }
+    .clip-bottom { bottom: 15px; left: 20px; }
+
+    .top-icons {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      display: flex;
+      gap: 15px;
+      z-index: 10;
+    }
+
+    .top-icons img {
+      width: 40px;
+      cursor: pointer;
+      transition: transform 0.25s ease;
+      filter: drop-shadow(0 0 5px rgba(0,0,0,0.4));
+    }
+
+    .top-icons img:hover {
+      transform: scale(1.15);
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 60px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 15px 50px;
+      border-radius: 20px;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      letter-spacing: 1.5px;
+      animation: fadeInDown 0.8s ease-in-out;
+      display: inline-block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .header-container {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .main-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      max-width: 1400px;
+      margin: 0 auto;
+      gap: 40px;
+      padding: 0 20px;
+    }
+
+    .left-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+
+    /* Animated LED Display */
+    .led-display {
+      width: 100%;
+      max-width: 500px;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(15px);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .led-bulb {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffff00, #ffcc00);
+      box-shadow: 0 0 40px rgba(255, 255, 0, 0.3);
+      transition: all 0.1s ease;
+      position: relative;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .led-bulb.on {
+      background: radial-gradient(circle at 30% 30%, #ffff00, #ffaa00);
+      box-shadow: 0 0 80px rgba(255, 255, 0, 0.9),
+                  0 0 120px rgba(255, 255, 0, 0.6),
+                  inset 0 0 30px rgba(255, 255, 255, 0.5);
+      transform: scale(1.1);
+    }
+
+    .led-bulb.off {
+      background: radial-gradient(circle at 30% 30%, #444, #222);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      transform: scale(1);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .led-label {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #00d4ff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* Control Panel */
+    .control-panel {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(15px);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: 25px 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .control-panel h3 {
+      font-size: 1.4rem;
+      color: #00d4ff;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .speed-control {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .speed-label {
+      font-size: 1.1rem;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .speed-slider {
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.2);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .speed-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00ff88, #00cc66);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0,255,136,0.6);
+    }
+
+    .speed-slider::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00ff88, #00cc66);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0,255,136,0.6);
+      border: none;
+    }
+
+    .speed-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #00ff88;
+      text-shadow: 0 0 10px rgba(0,255,136,0.6);
+    }
+
+    .control-buttons {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .control-buttons button {
+      flex: 1;
+      min-width: 120px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.1rem;
+      padding: 15px 25px;
+      border-radius: 15px;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+      transition: all 0.25s ease;
+      text-transform: uppercase;
+    }
+
+    .control-buttons button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn-on {
+      background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%) !important;
+      box-shadow: 0 6px 15px rgba(0, 255, 136, 0.4) !important;
+    }
+
+    .btn-off {
+      background: linear-gradient(135deg, #ff4757 0%, #cc3344 100%) !important;
+      box-shadow: 0 6px 15px rgba(255, 71, 87, 0.4) !important;
+    }
+
+    /* Game Section */
+    .game-section {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(15px);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: 25px 30px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    }
+
+    .game-section h3 {
+      font-size: 1.5rem;
+      color: #ffd700;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .game-info {
+      font-size: 0.95rem;
+      color: #ddd;
+      margin-bottom: 20px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .pattern-display {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .pattern-led {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #333;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+      transition: all 0.2s ease;
+    }
+
+    .pattern-led.active {
+      background: radial-gradient(circle, #ffff00, #ffaa00);
+      box-shadow: 0 0 20px rgba(255,255,0,0.8);
+    }
+
+    .game-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .game-btn {
+      background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+      color: #000;
+      font-weight: bold;
+      font-size: 1.1rem;
+      padding: 12px 25px;
+      border-radius: 15px;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 6px 15px rgba(255,215,0,0.4);
+      transition: all 0.25s ease;
+    }
+
+    .game-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(255,215,0,0.6);
+    }
+
+    .score-display {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #00ff88;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+
+    /* Right Section */
+    .right-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      animation: fadeInRight 1s ease-in-out;
+    }
+
+    .lion-container {
+      width: 280px;
+      height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .lion-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+    }
+
+    .speech-bubble {
+      background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+      color: #000;
+      padding: 25px 30px;
+      border-radius: 25px;
+      max-width: 450px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+      font-size: 1.05rem;
+      line-height: 1.8;
+      font-weight: 500;
+    }
+
+    .speech-bubble::before {
+      content: "";
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 15px solid #00d4ff;
+    }
+
+    .speech-bubble p {
+      margin: 0;
+    }
+
+    .speech-bubble strong {
+      color: #003d5c;
+      font-size: 1.15rem;
+    }
+
+    /* Continue Button */
+    .continue-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+      color: #000;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 15px 35px;
+      border-radius: 50px;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+
+    .continue-btn:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 12px 30px rgba(255, 215, 0, 0.6);
+    }
+
+    .continue-btn img {
+      width: 24px;
+      filter: invert(1);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,0.9);
+      color: #fff;
+      padding: 15px 25px;
+      border-radius: 12px;
+      opacity: 0;
+      transition: all 0.4s ease;
+      font-size: 1rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInRight {
+      from { opacity: 0; transform: translateX(50px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @media (max-width: 1024px) {
+      .main-content {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .left-section, .right-section {
+        width: 100%;
+        max-width: 600px;
+      }
+
+      .lion-container {
+        width: 220px;
+        height: 220px;
+      }
+
+      .continue-btn {
+        position: relative;
+        bottom: auto;
+        right: auto;
+        margin-top: 30px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 1.6rem; padding: 12px 30px; }
+      .led-bulb { width: 120px; height: 120px; }
+      .speech-bubble { max-width: 95%; font-size: 0.95rem; }
+      .control-panel, .game-section { max-width: 95%; }
+      .top-icons img { width: 35px; }
+      .lion-container { width: 180px; height: 180px; }
+    }
+  </style>
+</head>
+
+<body>
+  <img src="../../assets/images/clip-top.png" class="clip-top">
+  <img src="../images/clip-bottom.png" class="clip-bottom">
+
+  <div class="top-icons">
+    <a href="../welcome.html"><img src="../../assets/icons/home.png" alt="Home"></a>
+    <a href="../page4.html"><img src="../../assets/icons/achievements.png" alt="Achievements"></a>
+    <a href="javascript:history.back()"><img src="../../assets/icons/logout.png" alt="Back"></a>
+  </div>
+
+  <div class="header-container">
+    <h1>🧪 Blinking LED Experiment</h1>
+  </div>
+
+  <div class="main-content">
+    <!-- Left Section -->
+    <div class="left-section">
+      <!-- LED Display -->
+      <div class="led-display">
+        <div class="led-bulb off" id="ledBulb"></div>
+        <div class="led-label">LED Status: <span id="ledStatus">OFF</span></div>
+      </div>
+
+      <!-- Control Panel -->
+      <div class="control-panel">
+        <h3>⚡ Blink Speed Control</h3>
+        <div class="speed-control">
+          <div class="speed-label">Blink Speed (ms)</div>
+          <input type="range" class="speed-slider" id="speedSlider" min="100" max="2000" value="500" step="50">
+          <div class="speed-value"><span id="speedValue">500</span> ms</div>
+        </div>
+        <div class="control-buttons">
+          <button class="btn-on" onclick="startBlinking()">▶ START</button>
+          <button class="btn-off" onclick="stopBlinking()">⏹ STOP</button>
+        </div>
+      </div>
+
+      <!-- Game Section -->
+      <div class="game-section">
+        <h3>🎮 Beat the Blink Game!</h3>
+        <p class="game-info">Match the LED blink pattern shown below. Adjust your speed to sync with the pattern!</p>
+        <div class="pattern-display" id="patternDisplay">
+          <div class="pattern-led"></div>
+          <div class="pattern-led"></div>
+          <div class="pattern-led"></div>
+          <div class="pattern-led"></div>
+          <div class="pattern-led"></div>
+        </div>
+        <div class="game-controls">
+          <button class="game-btn" onclick="startGame()">🚀 Start Challenge</button>
+          <div class="score-display">Score: <span id="scoreValue">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section -->
+    <div class="right-section">
+      <div class="lion-container">
+        <img src="../../assets/images/lion.png" id="lion" alt="Veera Lion">
+      </div>
+
+      <div class="speech-bubble">
+        <p id="speechText"></p>
+      </div>
+    </div>
+  </div>
+
+  <button class="continue-btn" onclick="goNext()">
+    CONTINUE <img src="/VeeraApp-main/" alt="Arrow">
+  </button>
+
+  <audio id="voice" autoplay>
+    <source src="../../assets/voice/VOICE OVER PAGE 6.mp3" type="audio/mpeg">
+  </audio>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const audio = document.getElementById("voice");
+    const lion = document.getElementById("lion");
+    const toast = document.getElementById("toast");
+    const speechText = document.getElementById("speechText");
+    const ledBulb = document.getElementById("ledBulb");
+    const ledStatus = document.getElementById("ledStatus");
+    const speedSlider = document.getElementById("speedSlider");
+    const speedValue = document.getElementById("speedValue");
+    const patternDisplay = document.getElementById("patternDisplay");
+    const scoreValue = document.getElementById("scoreValue");
+
+    let blinkInterval = null;
+    let isBlinking = false;
+    let blinkSpeed = 500;
+    let gameInterval = null;
+    let gameRunning = false;
+    let score = 0;
+
+    // Typewriter Effect
+    const fullText = `<strong>👋 Hi there, young scientist!</strong><br><br>Today, we'll learn one of the simplest yet most magical things — <strong>making a light blink!</strong><br><br>The LED is like the eyes of your circuit — it blinks on and off, just like winking! 😉<br><br>Try adjusting the blink speed and play the <strong>Beat the Blink</strong> game to match the pattern!<br><br>Ready to make your LED dance? Let's start blinking! 💡✨`;
+    
+    let index = 0;
+    let currentText = '';
+    const speed = 30;
+
+    function typeWriter() {
+      if (index < fullText.length) {
+        if (fullText[index] === '<') {
+          const endTag = fullText.indexOf('>', index);
+          if (endTag !== -1) {
+            currentText += fullText.substring(index, endTag + 1);
+            index = endTag + 1;
+            speechText.innerHTML = currentText;
+            setTimeout(typeWriter, 0);
+            return;
+          }
+        }
+        currentText += fullText[index];
+        speechText.innerHTML = currentText;
+        index++;
+        setTimeout(typeWriter, speed);
+      }
+    }
+
+    setTimeout(typeWriter, 500);
+
+    audio.addEventListener("play", () => {
+      lion.src = "../../assets/images/lion.gif";
+    });
+
+    // Speed Slider
+    speedSlider.addEventListener("input", (e) => {
+      blinkSpeed = parseInt(e.target.value);
+      speedValue.textContent = blinkSpeed;
+      if (isBlinking) {
+        stopBlinking();
+        startBlinking();
+      }
+    });
+
+    // LED Blinking Functions
+    function startBlinking() {
+      if (isBlinking) return;
+      isBlinking = true;
+      let isOn = false;
+      
+      blinkInterval = setInterval(() => {
+        isOn = !isOn;
+        ledBulb.className = isOn ? "led-bulb on" : "led-bulb off";
+        ledStatus.textContent = isOn ? "ON" : "OFF";
+        
+        if (window.serialAPI && window.serialAPI.send) {
+          window.serialAPI.send(isOn ? "LED_ON" : "LED_OFF");
+        }
+      }, blinkSpeed);
+      
+      showToast("✅ LED Blinking Started!");
+    }
+
+    function stopBlinking() {
+      if (!isBlinking) return;
+      isBlinking = false;
+      clearInterval(blinkInterval);
+      ledBulb.className = "led-bulb off";
+      ledStatus.textContent = "OFF";
+      
+      if (window.serialAPI && window.serialAPI.send) {
+        window.serialAPI.send("LED_OFF");
+      }
+      
+      showToast("⏹ LED Blinking Stopped");
+    }
+
+    // Game Functions
+    function startGame() {
+      if (gameRunning) return;
+      gameRunning = true;
+      score = 0;
+      scoreValue.textContent = score;
+      
+      const patterns = patternDisplay.querySelectorAll(".pattern-led");
+      let currentLed = 0;
+      const gameSpeed = 300;
+      
+      gameInterval = setInterval(() => {
+        patterns.forEach(p => p.classList.remove("active"));
+        patterns[currentLed].classList.add("active");
+        currentLed = (currentLed + 1) % patterns.length;
+        
+        // Check if user's blink speed matches
+        const tolerance = 100;
+        if (Math.abs(blinkSpeed - gameSpeed) < tolerance) {
+          score += 10;
+          scoreValue.textContent = score;
+        }
+      }, gameSpeed);
+      
+      showToast("🎮 Game Started! Match the pattern!");
+      
+      setTimeout(() => {
+        clearInterval(gameInterval);
+        gameRunning = false;
+        patterns.forEach(p => p.classList.remove("active"));
+        showToast(`🏆 Game Over! Final Score: ${score}`);
+      }, 15000);
+    }
+
+    function goNext() {
+      window.location.href = "C5E2.html";
+    }
+
+    function showToast(msg, type = "info") {
+      toast.textContent = msg;
+      toast.style.background = type === "error" ? "rgba(255,50,50,0.9)" : "rgba(0,0,0,0.85)";
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2500);
+    }
+
+    // Serial Communication
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.serialAPI && window.serialAPI.send) {
+        window.serialAPI.send("SET_EXPERIMENT_1");
+      }
+
+      if (window.serialAPI && window.serialAPI.onData) {
+        window.serialAPI.onData((data) => {
+          if (data.type === "navigate" && data.target) {
+            window.location.href = data.target;
+          }
+        });
+      }
+    });
+  </script>
+  <script src="SerialManager.js"></script>
+  <script src="./backend/experimentControls.js"></script>
+  <script src="../backend/renderer.js"></script>
+</body>
+</html>

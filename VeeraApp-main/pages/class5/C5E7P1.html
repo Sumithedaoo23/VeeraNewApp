@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plant Soil Monitoring</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #a8edea 100%);
+      position: relative;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+
+    /* Animated bubbles background */
+    .bubbles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .bubble {
+      position: absolute;
+      bottom: -100px;
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      animation: rise 10s infinite ease-in;
+    }
+
+    @keyframes rise {
+      0% {
+        bottom: -100px;
+        transform: translateX(0) scale(1);
+        opacity: 0.8;
+      }
+
+      50% {
+        transform: translateX(100px) scale(1.2);
+      }
+
+      100% {
+        bottom: 110vh;
+        transform: translateX(-50px) scale(0.8);
+        opacity: 0;
+      }
+    }
+
+    /* Header */
+    header {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 25px;
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      position: relative;
+      z-index: 100;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #0066cc;
+      text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo span {
+      font-size: 2rem;
+      animation: wave 2s ease-in-out infinite;
+    }
+
+    @keyframes wave {
+
+      0%,
+      100% {
+        transform: rotate(0deg);
+      }
+
+      25% {
+        transform: rotate(20deg);
+      }
+
+      75% {
+        transform: rotate(-20deg);
+      }
+    }
+
+    .nav-icons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .nav-icon {
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.6);
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-icon:hover {
+      transform: scale(1.15) rotate(10deg);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Clip Arts */
+    .clip-top {
+      position: absolute;
+      top: 120px;
+      left: 20px;
+      width: 120px;
+      opacity: 0.9;
+      z-index: 5;
+      animation: float-clip 4s ease-in-out infinite;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    }
+
+    .clip-bottom {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 140px;
+      opacity: 0.9;
+      z-index: 5;
+      animation: float-clip 5s ease-in-out infinite;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    }
+
+    @keyframes float-clip {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-15px) rotate(5deg);
+      }
+    }
+
+    /* Heading */
+    .heading {
+      font-size: 2.5rem;
+      font-weight: bold;
+      padding: 20px 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border-radius: 25px;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 10;
+      animation: bounce-in 0.6s ease-out;
+      border: 4px solid rgba(255, 255, 255, 0.5);
+    }
+
+    @keyframes bounce-in {
+      0% {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* Main Content */
+    .content {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 50px;
+      margin-top: 50px;
+      padding: 0 20px;
+      position: relative;
+      z-index: 10;
+      max-width: 1400px;
+    }
+
+    .plant-container {
+      position: relative;
+      width: 350px;
+      animation: slide-in-left 0.8s ease-out;
+    }
+
+    @keyframes slide-in-left {
+      from {
+        transform: translateX(-100px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .plant-img {
+      width: 100%;
+      filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.2));
+      transition: transform 0.3s ease;
+    }
+
+    .plant-img:hover {
+      transform: scale(1.05);
+    }
+
+    .water-drops {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    .water-drop {
+      position: absolute;
+      width: 15px;
+      height: 20px;
+      background: rgba(100, 200, 255, 0.8);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(45deg);
+      animation: drop-fall 2s ease-in infinite;
+      opacity: 0;
+    }
+
+    @keyframes drop-fall {
+      0% {
+        top: -20px;
+        opacity: 1;
+      }
+
+      100% {
+        top: 100%;
+        opacity: 0;
+      }
+    }
+
+    /* Sensor Card */
+    .sensor-card {
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(15px);
+      padding: 30px;
+      border-radius: 25px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.6);
+      transition: transform 0.3s ease;
+      animation: slide-in-up 0.8s ease-out 0.2s backwards;
+    }
+
+    @keyframes slide-in-up {
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .sensor-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .sensor-img {
+      width: 180px;
+      height: auto;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+      animation: sensor-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes sensor-glow {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+      }
+
+      50% {
+        filter: drop-shadow(0 4px 20px rgba(100, 200, 255, 0.6));
+      }
+    }
+
+    .sensor-card h3 {
+      font-size: 1.4rem;
+      color: #0066cc;
+      text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .btn-on,
+    .btn-off {
+      padding: 12px 30px;
+      border-radius: 25px;
+      border: none;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      color: #fff;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-on {
+      background: linear-gradient(135deg, #43c743, #2eb82e);
+    }
+
+    .btn-off {
+      background: linear-gradient(135deg, #ff6b6b, #e63939);
+    }
+
+    .btn-on:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(67, 199, 67, 0.5);
+    }
+
+    .btn-off:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(230, 57, 57, 0.5);
+    }
+
+    .btn-on:active,
+    .btn-off:active {
+      transform: scale(0.95);
+    }
+
+    /* Buzzer Card */
+    .buzzer-card {
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(15px);
+      padding: 30px;
+      border-radius: 25px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.6);
+      animation: slide-in-up 0.8s ease-out 0.4s backwards;
+    }
+
+    .buzzer-img {
+      width: 120px;
+      height: auto;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+      transition: transform 0.3s ease;
+    }
+
+    .buzzer-active {
+      animation: buzz-shake 0.5s ease-in-out infinite;
+    }
+
+    @keyframes buzz-shake {
+
+      0%,
+      100% {
+        transform: rotate(0deg);
+      }
+
+      25% {
+        transform: rotate(-10deg);
+      }
+
+      75% {
+        transform: rotate(10deg);
+      }
+    }
+
+    .buzzer-card h3 {
+      font-size: 1.4rem;
+      color: #ff6600;
+      text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    }
+
+    /* Lion Character */
+    .lion-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      animation: slide-in-right 0.8s ease-out 0.6s backwards;
+    }
+
+    @keyframes slide-in-right {
+      from {
+        transform: translateX(100px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .speech {
+      background: linear-gradient(135deg, #00cfff 0%, #00a8cc 100%);
+      color: #000;
+      padding: 25px 30px;
+      border-radius: 25px;
+      font-size: 1.2rem;
+      max-width: 400px;
+      min-height: 100px;
+      text-align: center;
+      font-weight: bold;
+      position: relative;
+      white-space: pre-wrap;
+      box-shadow: 0 8px 20px rgba(0, 207, 255, 0.4);
+      border: 4px solid rgba(255, 255, 255, 0.6);
+      line-height: 1.6;
+    }
+
+    .speech::after {
+      content: "";
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 25px 20px 0;
+      border-style: solid;
+      border-color: #00a8cc transparent transparent transparent;
+    }
+
+    .lion {
+      width: 220px;
+      height: 220px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.2));
+      transition: transform 0.3s ease;
+    }
+
+    .lion:hover {
+      transform: scale(1.1);
+    }
+
+    /* Next Button */
+    .next-btn {
+      margin: 50px 0 30px 0;
+      padding: 20px 50px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+      position: relative;
+      z-index: 10;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .next-btn:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+    }
+
+    .next-btn:active {
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    .next-btn span {
+      font-size: 2rem;
+      animation: bounce 1s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .heading {
+        font-size: 1.8rem;
+        padding: 15px 25px;
+      }
+
+      .content {
+        gap: 30px;
+      }
+
+      .plant-container {
+        width: 280px;
+      }
+
+      .lion {
+        width: 180px;
+        height: 180px;
+      }
+
+      .speech {
+        font-size: 1rem;
+        max-width: 300px;
+        padding: 20px 25px;
+      }
+
+      .sensor-img {
+        width: 140px;
+      }
+
+      .buzzer-img {
+        width: 100px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .heading {
+        font-size: 1.4rem;
+        padding: 12px 20px;
+      }
+
+      .speech {
+        font-size: 0.9rem;
+        max-width: 250px;
+      }
+
+      .next-btn {
+        padding: 15px 35px;
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Animated Bubbles -->
+  <div class="bubbles" id="bubbles"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <!-- <span>🌊</span>  -->
+    </div>
+    <div class="heading">💧 Plant Soil Monitoring🚨</div>
+    <div class="nav-icons">
+
+      <div class="nav-icon" onclick="goHome()" title="Home">🏠</div>
+      <div class="nav-icon" onclick="goAchievements()" title="Achievements">🏆</div>
+      <div class="nav-icon" onclick="goBack()" title="Back">◀️</div>
+    </div>
+  </header>
+
+  <!-- Clip Arts -->
+  <img src="../../assets/images/clip-top.png" class="clip-top" alt="Top Clip">
+  <img src="../../assets/images/clip-bottom.png" class="clip-bottom" alt="Bottom Clip">
+
+  <!-- Heading -->
+
+  <!-- Main Content -->
+  <div class="content">
+    <!-- Plant -->
+    <div class="plant-container">
+      <img src="../../assets/images/plant.png" alt="Plant" class="plant-img" />
+      <div class="water-drops" id="waterDrops"></div>
+    </div>
+
+    <!-- Soil Moisture Sensor -->
+    <div class="sensor-card">
+      <img src="../../assets/images/moisture.png" alt="Soil Moisture Sensor" class="sensor-img" id="sensorImg" />
+      <h3>💧 Soil Moisture Sensor</h3>
+      <div class="buttons">
+        <button class="btn-on" id="btnOn" onclick="toggleSensor(true)">ON</button>
+        <button class="btn-off" id="btnOff" onclick="toggleSensor(false)">OFF</button>
+      </div>
+    </div>
+
+    <!-- Buzzer -->
+    <div class="buzzer-card">
+      <img src="../../assets/images/buzzer.png" alt="Buzzer" class="buzzer-img" id="buzzerImg" />
+      <h3>🔔 Buzzer Alert</h3>
+      <p id="buzzerStatus" style="font-size: 1.1rem; font-weight: bold; color: #666;">Ready to Alert!</p>
+    </div>
+
+    <!-- Lion & Speech -->
+    <div class="lion-section">
+      <div class="speech" id="speech"></div>
+      <img src="../../assets/images/lion.png" alt="Lion Mascot" class="lion" id="lion" />
+    </div>
+  </div>
+
+  <!-- Next Button -->
+  <button class="next-btn" onclick="goNext()">
+    Next Experiment <span>🦁</span>
+  </button>
+
+  <!-- Audio -->
+  <audio id="voice" autoplay>
+    <source src="../../assets/voice/VOICE OVER PAGE 19.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    // Create animated bubbles
+    const bubblesContainer = document.getElementById('bubbles');
+    for (let i = 0; i < 15; i++) {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.style.left = Math.random() * 100 + '%';
+      bubble.style.width = (20 + Math.random() * 60) + 'px';
+      bubble.style.height = bubble.style.width;
+      bubble.style.animationDelay = Math.random() * 5 + 's';
+      bubble.style.animationDuration = (8 + Math.random() * 4) + 's';
+      bubblesContainer.appendChild(bubble);
+    }
+
+    const audio = document.getElementById("voice");
+    const lion = document.getElementById("lion");
+    const speech = document.getElementById("speech");
+    const buzzerImg = document.getElementById("buzzerImg");
+    const buzzerStatus = document.getElementById("buzzerStatus");
+    const sensorImg = document.getElementById("sensorImg");
+    const waterDrops = document.getElementById("waterDrops");
+
+   const speechText = `💧🌱 Shhh… listen! Your plant is trying to tell you something — “I’m thirsty!”
+The soil moisture sensor helps us understand if the plant’s soil is dry or wet.
+If it’s dry, we water it. If it’s moist, the plant is happy! 😊
+This experiment teaches how sensors help us take care of living things.
+Let’s keep our green friend smiling! 🚨`;
+
+
+    let sensorActive = false;
+    let dropInterval;
+
+    // Typewriter effect
+    function typeText(text, element, speed = 45) {
+      element.textContent = "";
+      let i = 0;
+      function typing() {
+        if (i < text.length) {
+          element.textContent += text.charAt(i);
+          i++;
+          setTimeout(typing, speed);
+        }
+      }
+      typing();
+    }
+
+    // Create water drops
+    function createWaterDrop() {
+      const drop = document.createElement('div');
+      drop.className = 'water-drop';
+      drop.style.left = (20 + Math.random() * 60) + '%';
+      drop.style.animationDelay = Math.random() * 0.5 + 's';
+      waterDrops.appendChild(drop);
+      setTimeout(() => drop.remove(), 2000);
+    }
+
+    // Toggle sensor
+    function toggleSensor(isOn) {
+      sensorActive = isOn;
+
+      if (isOn) {
+        // Turn on sensor
+        document.getElementById('btnOn').style.transform = 'scale(1.2)';
+        document.getElementById('btnOff').style.transform = 'scale(1)';
+
+        // Start water drops
+        dropInterval = setInterval(createWaterDrop, 500);
+
+        // Simulate low water after 3 seconds
+        setTimeout(() => {
+          if (sensorActive) {
+            buzzerImg.classList.add('buzzer-active');
+            buzzerStatus.textContent = '🚨 ALERT! Water is Low!';
+            buzzerStatus.style.color = '#ff0000';
+            buzzerStatus.style.animation = 'buzz-shake 0.5s ease-in-out infinite';
+          }
+        }, 3000);
+      } else {
+        // Turn off sensor
+        document.getElementById('btnOn').style.transform = 'scale(1)';
+        document.getElementById('btnOff').style.transform = 'scale(1.2)';
+
+        // Stop water drops
+        clearInterval(dropInterval);
+
+        // Reset buzzer
+        buzzerImg.classList.remove('buzzer-active');
+        buzzerStatus.textContent = 'Ready to Alert!';
+        buzzerStatus.style.color = '#666';
+        buzzerStatus.style.animation = 'none';
+      }
+    }
+
+    // Autoplay audio & start animations
+    audio.play().then(() => {
+      lion.src = "../../assets/images/lion.gif";
+      typeText(speechText, speech);
+    }).catch(() => {
+      document.body.addEventListener(
+        "click",
+        () => {
+          audio.play();
+          lion.src = "../../assets/images/lion.gif";
+          typeText(speechText, speech);
+        },
+        { once: true }
+      );
+    });
+
+    // Reset lion to PNG after audio ends
+    audio.addEventListener("ended", () => {
+      lion.src = "../../assets/images/lion.png";
+    });
+
+    // Navigation
+    function goNext() {
+      window.location.href = "../page4.html";
+    }
+    function goHome() {
+      window.location.href = "../welcome.html";
+    }
+    function goAchievements() {
+      window.location.href = "../page4.html";
+    }
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+
+  <script src="../serial-handler.js"></script>
+  <script src="SerialManager.js"></script>
+  <script src="./backend/experimentControls.js"></script>
+  <script src="../backend/renderer.js"></script>
+
+</body>
+
+</html>

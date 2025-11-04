@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Class 5 — Experiment 3: Food Storage Monitoring</title>
+<style>
+  :root{
+    --green:#4caf50; --dark-green:#2e7d32; --danger:#e53935;
+    --soft:#f5f7f6; --blue:#03a9f4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:Inter, Poppins, Arial, sans-serif}
+  body{
+    min-height:100vh;
+    background: linear-gradient(180deg,#a1e357 0%,#ffffff 100%);
+    padding:22px; display:flex; flex-direction:column; align-items:center;
+    overflow-x:hidden; gap:18px;
+  }
+
+  .top-icons{
+    position:fixed; top:18px; right:20px; display:flex; gap:12px; z-index:50;
+  }
+  .top-icons img{ width:56px; cursor:pointer; transition:transform .18s ease}
+  .top-icons img:hover{ transform:scale(1.08) }
+
+  .heading{
+    margin-top:40px; background:var(--green); color:#fff;
+    padding:12px 28px;border-radius:14px; font-weight:700;
+    box-shadow:0 6px 16px rgba(0,0,0,0.12); font-size:1.6rem;
+  }
+
+  .content{
+    width:100%; max-width:1100px; display:grid; gap:20px;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items:start;
+  }
+  @media(max-width:950px){ 
+    .content{ grid-template-columns: 1fr; } 
+    .top-icons{ position:static; margin-top:6px; } 
+  }
+
+  .card{
+    background: rgba(255,255,255,0.92); border-radius:14px; padding:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.08); display:flex; flex-direction:column; align-items:center;
+  }
+
+  .card h3{ margin-bottom:10px; font-size:1.05rem; color:#222; }
+
+  .board-img{ width:220px; margin-top:6px; }
+
+  #sensor-card .controls{ 
+    margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; 
+    justify-content:center; align-items:center 
+  }
+  
+  .btn{ 
+    padding:10px 16px; border-radius:18px; cursor:pointer; 
+    border:none; font-weight:700; box-shadow:0 6px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+  }
+  .btn:hover{ transform: scale(1.05); }
+  .btn-measure{ background:var(--danger); color:#fff }
+  .btn-set{ background:var(--green); color:#fff }
+  .btn-reset{ background:#9e9e9e; color:#fff }
+
+  .small-input{ 
+    width:110px; padding:8px 10px; border:2px solid #cce; 
+    border-radius:10px; text-align:center; font-weight:600 
+  }
+
+  .fridge{
+    width:240px; height:320px; border-radius:12px; border:6px solid #fff; 
+    background: linear-gradient(180deg,#e3f2fd,#b3e5fc);
+    position:relative; overflow:hidden; display:flex; 
+    align-items:center; justify-content:center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  .fridge-door{ 
+    position:absolute; inset:0; border-radius:12px; 
+    pointer-events:none; 
+  }
+  
+  .food-img{ 
+    width:140px; transition:filter .4s ease, transform .2s ease; 
+  }
+
+  .freshness{
+    width:80%; height:18px; background:#eee; border-radius:10px; 
+    overflow:hidden; margin-top:14px;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
+  }
+  
+  .freshness-fill{
+    height:100%; width:100%; transform-origin:left; 
+    transition:width .8s ease, background .4s ease;
+    background:linear-gradient(90deg,#76ff03,#2e7d32);
+  }
+  
+  .fresh-label{ margin-top:8px; font-weight:800; color:#222; font-size:1rem; }
+
+  .temp-ind{
+    width:80px; height:80px; border-radius:50%; border:4px solid #333; 
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; margin-top:12px; font-size:1.1rem;
+    transition:background .3s ease, color .2s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  }
+
+  .alert{
+    margin-top:12px; padding:10px 16px; border-radius:10px; 
+    font-weight:700; display:inline-block; text-align:center;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .hint{ font-size:0.9rem; color:#555; margin-top:8px; text-align:center; }
+
+  .next{ 
+    margin-top:18px; padding:14px 28px; border-radius:12px; 
+    background:#1976d2; color:#fff; font-weight:800; border:none; 
+    cursor:pointer; font-size:1rem; transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .next:hover{ transform:scale(1.06); background:#1565c0; }
+
+  .status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-top: 8px;
+  }
+
+  .status-connected {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 2px solid #4caf50;
+  }
+
+  .status-disconnected {
+    background: #ffebee;
+    color: #c62828;
+    border: 2px solid #e53935;
+  }
+</style>
+</head>
+<body>
+
+  <div class="top-icons" role="navigation" aria-label="top icons">
+    <img src="../../assets/icons/home.png" alt="Home" onclick="goHome()" title="Home">
+    <img src="../../assets/icons/achievements.png" alt="Achievements" onclick="goAchievements()" title="Achievements">
+    <img src="../../assets/icons/logout.png" alt="Back" onclick="goBack()" title="Back">
+  </div>
+
+  <div class="heading">Class 5 — Food Storage Monitoring (Experiment 3)</div>
+
+  <div class="content">
+    
+    <!-- Board / Microcontroller -->
+    <div class="card" id="board-card">
+      <h3>Microcontroller Board</h3>
+      <img class="board-img" src="../../assets/images/board.png" alt="Microcontroller Board">
+      <p class="hint">Sends temperature values via serial to monitor food freshness.</p>
+      <div id="connection-status" class="status-badge status-disconnected">● Disconnected</div>
+    </div>
+
+    <!-- Sensors & Controls -->
+    <div class="card" id="sensor-card">
+      <h3>Temperature Sensor Controls</h3>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px">
+        <button class="btn btn-measure" id="btn-measure-temp">📡 MEASURE TEMP</button>
+      </div>
+
+      <div class="controls">
+        <input class="small-input" id="threshold-input" type="number" placeholder="Temp (°C)" />
+        <button class="btn btn-set" id="btn-set-threshold">✓ Set</button>
+        <button class="btn btn-reset" id="btn-reset-threshold">↺ Reset</button>
+      </div>
+
+      <div style="margin-top:20px; display:flex; flex-direction:column; align-items:center">
+        <div style="text-align:center;font-weight:800; margin-bottom:8px">Current Temperature</div>
+        <div class="temp-ind" id="temp-ind">--°C</div>
+        <p class="hint" style="margin-top:10px">Threshold: <span id="current-threshold" style="font-weight:800; color:#2e7d32;">5°C</span></p>
+      </div>
+
+      <div id="temp-alert" class="alert" style="display:none;background:#ffebee;color:#b71c1c;border:2px solid #ef5350">
+        🔥 Maintain Cool! Temperature too high!
+      </div>
+    </div>
+
+    <!-- Refrigerator / Food -->
+    <div class="card" id="fridge-card" style="align-items:center">
+      <h3>Refrigerator Status</h3>
+      <div class="fridge">
+        <img class="food-img" id="food-img" src="../../assets/images/fresh-food.png" alt="Food inside fridge">
+        <div class="fridge-door"></div>
+      </div>
+
+      <div class="freshness" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-labelledby="freshness-label">
+        <div id="freshness-fill" class="freshness-fill" style="width:100%"></div>
+      </div>
+      <div id="freshness-label" class="fresh-label">Freshness: <span id="freshness-percent">100%</span></div>
+      <p class="hint">Food quality depends on maintaining proper temperature below threshold.</p>
+    </div>
+  </div>
+
+  <button class="next" onclick="goNext()">NEXT EXPERIMENT →</button>
+
+  <audio id="buzzer" src="../../assets/sounds/buzzer.mp3" preload="auto"></audio>
+  <audio id="voice" autoplay>
+    <source src="../../assets/voice/VOICE OVER PAGE 11.mp3" type="audio/mpeg">
+  </audio>
+
+<script>
+// ========== GLOBAL VARIABLES ==========
+const foodImg = document.getElementById('food-img');
+const tempInd = document.getElementById('temp-ind');
+const buzzer = document.getElementById('buzzer');
+const freshnessFill = document.getElementById('freshness-fill');
+const freshnessPercentText = document.getElementById('freshness-percent');
+const tempAlert = document.getElementById('temp-alert');
+const thresholdInput = document.getElementById('threshold-input');
+const btnSet = document.getElementById('btn-set-threshold');
+const btnReset = document.getElementById('btn-reset-threshold');
+const btnMeasure = document.getElementById('btn-measure-temp');
+const connectionStatus = document.getElementById('connection-status');
+const currentThresholdSpan = document.getElementById('current-threshold');
+
+let tempThreshold = 5; // Default safe temperature threshold in °C
+let lastTemp = null;
+let isConnected = false;
+
+// ========== RESTORE SESSION DATA ==========
+if (sessionStorage.getItem('c5e3_threshold')) {
+  tempThreshold = Number(sessionStorage.getItem('c5e3_threshold')) || tempThreshold;
+  thresholdInput.value = tempThreshold;
+  currentThresholdSpan.textContent = `${tempThreshold}°C`;
+}
+
+// ========== UI UPDATE FUNCTIONS ==========
+function setTempIndicator(temp) {
+  tempInd.innerText = `${temp.toFixed(1)}°C`;
+  
+  if (temp <= tempThreshold) {
+    tempInd.style.background = '#e8f5e9';
+    tempInd.style.color = '#1b5e20';
+    tempInd.style.borderColor = '#4caf50';
+  } else if (temp <= tempThreshold + 5) {
+    tempInd.style.background = '#fff3e0';
+    tempInd.style.color = '#e65100';
+    tempInd.style.borderColor = '#ff9800';
+  } else {
+    tempInd.style.background = '#ffebee';
+    tempInd.style.color = '#b71c1c';
+    tempInd.style.borderColor = '#e53935';
+  }
+}
+
+function computeFreshness(temp) {
+  if (temp <= tempThreshold) return 100;
+  const delta = temp - tempThreshold;
+  // Lose 10% freshness per degree above threshold
+  let score = Math.round(100 - delta * 10);
+  return Math.max(0, score);
+}
+
+function updateFreshnessUI(temp) {
+  const score = computeFreshness(temp);
+  freshnessPercentText.innerText = `${score}%`;
+  freshnessFill.style.width = `${score}%`;
+
+  if (score >= 70) {
+    // Fresh - Green
+    freshnessFill.style.background = 'linear-gradient(90deg,#76ff03,#2e7d32)';
+    foodImg.src = '../../assets/images/fresh-food.png';
+    foodImg.style.filter = 'none';
+    tempAlert.style.display = 'none';
+  } else if (score >= 40) {
+    // Getting stale - Yellow/Orange
+    freshnessFill.style.background = 'linear-gradient(90deg,#ffd54f,#ff8a65)';
+    foodImg.src = '../../assets/images/fresh-food.png';
+    foodImg.style.filter = 'grayscale(20%) brightness(0.9) sepia(20%)';
+    tempAlert.style.display = 'inline-block';
+    tempAlert.innerHTML = '⚠️ Keep cooling — food losing freshness';
+    playBuzzer();
+  } else {
+    // Stale - Red
+    freshnessFill.style.background = 'linear-gradient(90deg,#ff8a65,#e53935)';
+    foodImg.src = '../../assets/images/stale-food.png';
+    foodImg.style.filter = 'grayscale(60%) brightness(0.65)';
+    tempAlert.style.display = 'inline-block';
+    tempAlert.innerHTML = '🔥 Maintain Cool! Food is getting stale!';
+    playBuzzer();
+  }
+}
+
+function updateConnectionStatus(connected) {
+  isConnected = connected;
+  if (connected) {
+    connectionStatus.textContent = '● Connected';
+    connectionStatus.className = 'status-badge status-connected';
+  } else {
+    connectionStatus.textContent = '● Disconnected';
+    connectionStatus.className = 'status-badge status-disconnected';
+  }
+}
+
+// ========== BUZZER CONTROL ==========
+let buzzerCooldown = false;
+function playBuzzer() {
+  if (buzzerCooldown) return;
+  try {
+    buzzer.currentTime = 0;
+    buzzer.play().catch(() => {});
+    buzzerCooldown = true;
+    setTimeout(() => buzzerCooldown = false, 3000);
+  } catch (e) {}
+}
+
+// ========== SERIAL COMMUNICATION ==========
+function handleSerialData(obj) {
+  if (!obj || !obj.type) return;
+  
+  if (obj.type === 'temp' || obj.type === 'temperature') {
+    const t = Number(obj.value);
+    if (Number.isFinite(t)) {
+      lastTemp = t;
+      setTempIndicator(t);
+      updateFreshnessUI(t);
+      updateConnectionStatus(true);
+    }
+  } else if (obj.type === 'navigate' && obj.target) {
+    window.location.href = obj.target;
+  }
+}
+
+// Hook into external serial API if available
+if (window.serialAPI && typeof window.serialAPI.onData === 'function') {
+  try {
+    window.serialAPI.onData((data) => {
+      let obj = data;
+      if (typeof data === 'string') {
+        try { 
+          obj = JSON.parse(data); 
+        } catch (e) {
+          // Try parsing simple format like "TEMP:5.4"
+          if (data.includes('TEMP:')) {
+            const temp = parseFloat(data.split(':')[1]);
+            obj = { type: 'temp', value: temp };
+          }
+        }
+      }
+      handleSerialData(obj);
+    });
+    updateConnectionStatus(true);
+  } catch (e) {
+    console.warn('Serial API error:', e);
+    updateConnectionStatus(false);
+  }
+} else {
+  console.log('Waiting for serial connection...');
+  updateConnectionStatus(false);
+}
+
+// ========== BUTTON EVENT HANDLERS ==========
+btnSet.addEventListener('click', () => {
+  const v = parseFloat(thresholdInput.value);
+  if (!isNaN(v) && v > 0) {
+    tempThreshold = v;
+    sessionStorage.setItem('c5e3_threshold', String(v));
+    currentThresholdSpan.textContent = `${v}°C`;
+    alert(`✅ Temperature threshold set to ${v}°C`);
+    if (lastTemp !== null) updateFreshnessUI(lastTemp);
+  } else {
+    alert('⚠️ Please enter a valid positive number for threshold');
+  }
+});
+
+btnReset.addEventListener('click', () => {
+  tempThreshold = 5;
+  thresholdInput.value = '';
+  sessionStorage.removeItem('c5e3_threshold');
+  currentThresholdSpan.textContent = '5°C';
+  alert('🔄 Threshold reset to default (5°C)');
+  if (lastTemp !== null) updateFreshnessUI(lastTemp);
+});
+
+btnMeasure.addEventListener('click', () => {
+  try {
+    if (window.serialAPI && typeof window.serialAPI.send === 'function') {
+      window.serialAPI.send('MEASURE_TEMP');
+      alert('📡 Measurement request sent to board');
+    } else {
+      alert('🔌 Serial connection not available. Connect your board first.');
+    }
+  } catch (e) {
+    console.error('Measure error:', e);
+    alert('⚠️ Could not send measurement request');
+  }
+});
+
+// ========== NAVIGATION FUNCTIONS ==========
+function goNext() { window.location.href = 'C5E4.html'; }
+function goHome() { window.location.href = '../welcome.html'; }
+function goAchievements() { window.location.href = '../page4.html'; }
+function goBack() { window.history.back(); }
+
+// ========== INITIALIZE ==========
+console.log('Food Storage Monitoring initialized');
+console.log('Current threshold:', tempThreshold + '°C');
+</script>
+
+<script src="../backend/renderer.js"></script>
+<script src="serialmanager.js"></script>
+<script src="./backend/experimentControls.js"></script>
+
+</body>
+</html>

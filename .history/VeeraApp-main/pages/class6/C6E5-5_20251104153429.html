@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living Object Movement Detection</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Base Styles */
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Custom Styles for Animation */
+        .h-\[calc\(100vh-180px\)\] {
+            height: calc(100vh - 180px);
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+        
+        /* Basic Icon Placeholder Styles (Replacing lucide-react) */
+        .icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            stroke-width: 2;
+        }
+        .icon-arrow-left::before { content: '←'; font-size: 24px; }
+        .icon-home::before { content: '🏠'; font-size: 24px; }
+        .icon-grid3x3::before { content: '🎛️'; font-size: 24px; }
+        .icon-play::before { content: '▶️'; font-size: 20px; }
+        .icon-pause::before { content: '⏸️'; font-size: 20px; }
+    </style>
+</head>
+
+<body>
+    <div id="app-root" class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-6">
+        <audio id="voiceover-audio" src="VOICEOVER_FILE_PATH.mp3"></audio>
+
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-cyan-300">Living Object Movement Detection</h1>
+            <div class="flex gap-3">
+                <button id="prev-btn" class="w-12 h-12 bg-cyan-600 hover:bg-cyan-700 rounded-full flex items-center justify-center transition">
+                    <i class="icon icon-arrow-left w-6 h-6"></i>
+                </button>
+                <button id="home-btn" class="w-12 h-12 bg-cyan-600 hover:bg-cyan-700 rounded-full flex items-center justify-center transition">
+                    <i class="icon icon-home w-6 h-6"></i>
+                </button>
+                <button id="levels-btn" class="w-12 h-12 bg-cyan-600 hover:bg-cyan-700 rounded-full flex items-center justify-center transition">
+                    <i class="icon icon-grid3x3 w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-6 h-[calc(100vh-180px)]">
+            <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-cyan-500/30">
+                <h2 class="text-xl font-semibold mb-4 text-cyan-300">Veera Kit</h2>
+                <div class="bg-slate-700/50 rounded-xl p-4 mb-4">
+                    <div class="text-center text-sm text-gray-300 mb-2">PIR Motion Sensor</div>
+                    <div class="w-full h-48 bg-gradient-to-b from-blue-900 to-slate-800 rounded-lg flex items-center justify-center">
+                        <div class="text-6xl">📡</div>
+                    </div>
+                    <div class="mt-4 text-xs text-gray-400 text-center">
+                        Sensor detects infrared radiation from living objects
+                    </div>
+                </div>
+
+                <div class="bg-slate-700/50 rounded-xl p-4 mb-4">
+                    <h3 class="text-sm font-semibold mb-2 text-cyan-300">Sensor Reading</h3>
+                    <div class="bg-slate-900 rounded-lg p-4 text-center">
+                        <div id="sensor-value-display" class="text-4xl font-bold text-cyan-400">0</div>
+                        <div class="text-sm text-gray-400 mt-1">Motion Level</div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-700/50 rounded-xl p-4">
+                    <h3 class="text-sm font-semibold mb-3 text-cyan-300">Threshold Settings</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">Set Threshold</label>
+                            <input type="number" value="50" id="input-threshold"
+                                class="w-full bg-slate-900 rounded px-3 py-2 text-white border border-cyan-500/30 focus:border-cyan-500 outline-none"
+                                min="0" max="100" />
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="set-threshold-btn"
+                                class="flex-1 bg-cyan-600 hover:bg-cyan-700 py-2 rounded font-semibold transition">
+                                Set Threshold
+                            </button>
+                            <button id="reset-btn"
+                                class="flex-1 bg-red-600 hover:bg-red-700 py-2 rounded font-semibold transition">
+                                Reset
+                            </button>
+                        </div>
+                        <div class="text-xs text-gray-400 text-center">
+                            Current: <span id="current-threshold-display">50</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-cyan-500/30 relative overflow-hidden">
+                {/* Camera UI Elements */}
+                <div class="absolute top-4 left-4 z-10 flex items-center gap-2">
+                    <div id="rec-indicator" class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <span class="text-xs font-mono">REC</span>
+                </div>
+                <div class="absolute top-4 right-4 z-10 text-xs font-mono" id="time-display">
+                    </div>
+
+                {/* Security Camera View */}
+                <div class="relative w-full h-full bg-gradient-to-b from-slate-900 to-slate-800 rounded-xl overflow-hidden border-4 border-slate-700">
+                    {/* Grid overlay */}
+                    <div class="absolute inset-0 opacity-20">
+                        <div class="grid grid-cols-3 grid-rows-3 h-full">
+                            <div class="border border-cyan-500"></div>
+                            <div class="border border-cyan-500"></div>
+                            <div class="border border-cyan-500"></div>
+                            <div class="border border-cyan-500"></div>
+                            <div class="border border-cyan-500"></div>
+                            <div class="border border-cyan-500"></div>
+                            <div class="border border-cyan-500"></div>
+                            <div class="border border-cyan-500"></div>
+                            <div class="border border-cyan-500"></div>
+                        </div>
+                    </div>
+
+                    {/* Scene Background */}
+                    <div class="absolute inset-0 flex items-end justify-center">
+                        <div class="w-full h-3/4 bg-gradient-to-t from-green-900/30 to-transparent">
+                            {/* House */}
+                            <div class="absolute bottom-0 left-1/4 w-32 h-40">
+                                <div class="absolute bottom-0 w-full h-32 bg-yellow-900/60 border-2 border-yellow-700"></div>
+                                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[64px] border-r-[64px] border-b-[40px] border-l-transparent border-r-transparent border-b-red-900"></div>
+                                <div class="absolute bottom-8 left-8 w-8 h-12 bg-cyan-300/40 border border-cyan-600"></div>
+                                <div class="absolute bottom-8 right-8 w-8 h-12 bg-cyan-300/40 border border-cyan-600"></div>
+                            </div>
+
+                            {/* Trees */}
+                            <div class="absolute bottom-0 right-1/4">
+                                <div class="w-8 h-16 bg-amber-900"></div>
+                                <div class="absolute -top-8 -left-4 text-5xl">🌳</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Moving Object */}
+                    <div id="moving-object"
+                        class="absolute text-6xl transition-all duration-100"
+                        style="left: -100%; top: 50%;">
+                        </div>
+
+                    {/* Detection Zone Highlight */}
+                    <div id="detection-highlight" class="hidden absolute inset-0 border-4 border-red-500 animate-pulse">
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-500/20 rounded-full w-32 h-32 animate-ping"></div>
+                    </div>
+
+                    {/* Alert Banner */}
+                    <div id="alert-banner" class="hidden absolute top-1/4 left-1/2 -translate-x-1/2 bg-red-600 px-6 py-3 rounded-lg font-bold text-xl animate-pulse z-20">
+                        ⚠️ MOVEMENT DETECTED! ⚠️
+                    </div>
+
+                    {/* Status Text */}
+                    <div class="absolute bottom-4 left-4 bg-slate-900/80 px-4 py-2 rounded text-sm z-10">
+                        <div class="flex items-center gap-2">
+                            <div id="detection-light" class="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span id="detection-status-text">AREA SECURE</span>
+                        </div>
+                    </div>
+
+                    {/* Detection Info */}
+                    <div class="absolute bottom-4 right-4 bg-slate-900/80 px-4 py-2 rounded text-xs z-10">
+                        <div>Sensitivity: <span id="info-threshold">50</span>%</div>
+                        <div>Signal: <span id="info-signal">0</span>%</div>
+                    </div>
+                </div>
+
+                {/* Control Panel */}
+                <div class="mt-4 flex justify-center gap-4">
+                    <button id="toggle-animation-btn"
+                        class="bg-cyan-600 hover:bg-cyan-700 px-6 py-2 rounded-lg font-semibold flex items-center gap-2 transition">
+                        <i id="toggle-animation-icon" class="icon icon-play w-5 h-5"></i>
+                        <span id="toggle-animation-text">Start Simulation</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-cyan-500/30 flex flex-col">
+                <h2 class="text-xl font-semibold mb-4 text-cyan-300">Veera Guide</h2>
+                <div class="flex-1 flex items-center justify-center">
+                    <img src="lion.gif" alt="Veera Avatar" class="max-w-full max-h-96 object-contain" />
+                </div>
+
+                {/* Information Panel */}
+                <div class="mt-4 bg-slate-700/50 rounded-xl p-4">
+                    <h3 class="font-semibold mb-2 text-cyan-300">About This Experiment</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                        PIR (Passive Infrared) sensors detect movement by measuring infrared radiation.
+                        Living objects emit heat, which the sensor detects when they move within range.
+                        Adjust the threshold to control sensitivity!
+                    </p>
+                </div>
+
+                {/* Statistics */}
+                <div class="mt-4 grid grid-cols-2 gap-3">
+                    <div class="bg-slate-700/50 rounded-lg p-3 text-center">
+                        <div id="stat-detection" class="text-2xl font-bold text-cyan-400">NO</div>
+                        <div class="text-xs text-gray-400">Detection</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-3 text-center">
+                        <div id="stat-object" class="text-2xl font-bold text-cyan-400">None</div>
+                        <div class="text-xs text-gray-400">Object Type</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {/* Bottom Navigation */}
+        <div class="mt-6 flex justify-center">
+            <button id="next-experiment-btn" class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 px-12 py-4 rounded-xl font-bold text-lg transition shadow-lg">
+                Next Experiment →
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE VARIABLES (Window Scope) ---
+        window.sensorValue = 0;
+        window.threshold = 50;
+        window.inputThreshold = '50';
+        window.isMovementDetected = false;
+        window.detectedObject = null;
+        window.objectPosition = { x: -100, y: 50 };
+        window.isAnimating = true;
+        window.alertActive = false;
+        
+        let sensorIntervalId = null;
+        let animationIntervalId = null;
+        const objects = ['person', 'cat', 'dog'];
+        
+        // --- DOM ELEMENTS (Cached) ---
+        const audioEl = document.getElementById('voiceover-audio');
+        const sensorValueDisplayEl = document.getElementById('sensor-value-display');
+        const currentThresholdDisplayEl = document.getElementById('current-threshold-display');
+        const inputThresholdEl = document.getElementById('input-threshold');
+        const setThresholdBtn = document.getElementById('set-threshold-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const toggleAnimationBtn = document.getElementById('toggle-animation-btn');
+        const toggleAnimationIconEl = document.getElementById('toggle-animation-icon');
+        const toggleAnimationTextEl = document.getElementById('toggle-animation-text');
+        const timeDisplayEl = document.getElementById('time-display');
+        const movingObjectEl = document.getElementById('moving-object');
+        const detectionHighlightEl = document.getElementById('detection-highlight');
+        const alertBannerEl = document.getElementById('alert-banner');
+        const detectionLightEl = document.getElementById('detection-light');
+        const detectionStatusTextEl = document.getElementById('detection-status-text');
+        const infoThresholdEl = document.getElementById('info-threshold');
+        const infoSignalEl = document.getElementById('info-signal');
+        const statDetectionEl = document.getElementById('stat-detection');
+        const statObjectEl = document.getElementById('stat-object');
+        
+        // --- UTILITY FUNCTIONS ---
+        const getObjectEmoji = (obj) => {
+            if (!obj) return '👤';
+            switch(obj) {
+                case 'person': return '🚶';
+                case 'cat': return '🐱';
+                case 'dog': return '🐕';
+                default: return '👤';
+            }
+        };
+
+        const updateTime = () => {
+             timeDisplayEl.textContent = new Date().toLocaleTimeString();
+        }
+
+        // --- RENDER FUNCTION ---
+        const updateUI = () => {
+            sensorValueDisplayEl.textContent = window.sensorValue;
+            currentThresholdDisplayEl.textContent = window.threshold;
+            inputThresholdEl.value = window.inputThreshold;
+            
+            // Center Scene Updates
+            if (window.isAnimating) {
+                movingObjectEl.style.left = `${window.objectPosition.x}%`;
+                movingObjectEl.style.top = `${window.objectPosition.y}%`;
+                movingObjectEl.style.filter = window.isMovementDetected ? 'drop-shadow(0 0 10px #00ff00)' : 'none';
+            }
+            movingObjectEl.textContent = getObjectEmoji(window.detectedObject || 'person');
+
+            detectionHighlightEl.classList.toggle('hidden', !window.isMovementDetected);
+            alertBannerEl.classList.toggle('hidden', !window.alertActive);
+
+            // Status updates
+            detectionLightEl.className = `w-2 h-2 rounded-full ${window.isMovementDetected ? 'bg-red-500' : 'bg-green-500'}`;
+            detectionStatusTextEl.textContent = window.isMovementDetected ? `${window.detectedObject?.toUpperCase() || 'OBJECT'} DETECTED` : 'AREA SECURE';
+            infoThresholdEl.textContent = window.threshold;
+            infoSignalEl.textContent = window.sensorValue;
+
+            // Stats Panel
+            statDetectionEl.textContent = window.isMovementDetected ? 'YES' : 'NO';
+            statObjectEl.textContent = window.detectedObject ? window.detectedObject.charAt(0).toUpperCase() + window.detectedObject.slice(1) : 'None';
+
+            // Control Button
+            toggleAnimationIconEl.className = `icon w-5 h-5 ${window.isAnimating ? 'icon-pause' : 'icon-play'}`;
+            toggleAnimationTextEl.textContent = `${window.isAnimating ? 'Pause' : 'Start'} Simulation`;
+        };
+
+        // --- SIMULATION LOGIC ---
+
+        const startSensorSimulation = () => {
+            clearInterval(sensorIntervalId);
+            sensorIntervalId = setInterval(() => {
+                const newValue = Math.floor(Math.random() * 100);
+                window.sensorValue = newValue;
+                
+                if (newValue > window.threshold) {
+                    window.isMovementDetected = true;
+                    window.alertActive = true;
+                    window.detectedObject = objects[Math.floor(Math.random() * objects.length)];
+                } else {
+                    window.isMovementDetected = false;
+                    window.alertActive = false;
+                    window.detectedObject = null;
+                }
+                updateUI();
+            }, 2000);
+        };
+
+        const startAnimation = () => {
+            clearInterval(animationIntervalId);
+            animationIntervalId = setInterval(() => {
+                window.objectPosition.x += 2;
+                if (window.objectPosition.x > 100) {
+                    window.objectPosition.x = -100;
+                    window.objectPosition.y = Math.random() * 60 + 20;
+                    window.detectedObject = objects[Math.floor(Math.random() * objects.length)];
+                }
+                updateUI();
+            }, 50);
+        };
+
+        const toggleAnimation = () => {
+            window.isAnimating = !window.isAnimating;
+            if (window.isAnimating) {
+                startAnimation();
+            } else {
+                clearInterval(animationIntervalId);
+            }
+            updateUI();
+        };
+
+        // --- HANDLERS ---
+        const handleSetThreshold = () => {
+            const value = parseInt(inputThresholdEl.value);
+            if (!isNaN(value) && value >= 0 && value <= 100) {
+                window.threshold = value;
+                window.inputThreshold = value.toString();
+                // Restart sensor simulation to use new threshold immediately
+                startSensorSimulation();
+            } else {
+                window.inputThreshold = window.threshold.toString();
+            }
+            updateUI();
+        };
+
+        const handleReset = () => {
+            window.threshold = 50;
+            window.inputThreshold = '50';
+            window.sensorValue = 0;
+            window.isMovementDetected = false;
+            window.alertActive = false;
+            window.detectedObject = null;
+
+            // Reset simulation if paused
+            if (!window.isAnimating) toggleAnimation();
+
+            startSensorSimulation();
+            updateUI();
+        };
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial Time Update
+            setInterval(updateTime, 1000);
+            updateTime();
+
+            // Auto-play audio
+            if (audioEl) {
+                audioEl.play().catch(e => console.log('Audio play failed:', e));
+            }
+
+            // Start Simulations
+            startSensorSimulation();
+            startAnimation();
+
+            // Attach Event Listeners
+            setThresholdBtn.addEventListener('click', handleSetThreshold);
+            resetBtn.addEventListener('click', handleReset);
+            toggleAnimationBtn.addEventListener('click', toggleAnimation);
+            inputThresholdEl.addEventListener('input', (e) => {
+                window.inputThreshold = e.target.value;
+            });
+
+            // Navigation Placeholders
+            document.getElementById('prev-btn').addEventListener('click', () => window.history.back());
+            document.getElementById('home-btn').addEventListener('click', () => console.log('Navigate to home'));
+            document.getElementById('levels-btn').addEventListener('click', () => console.log('Navigate to levels'));
+            document.getElementById('next-experiment-btn').addEventListener('click', () => console.log('Navigate to next experiment'));
+
+            // Initial Render
+            updateUI();
+        });
+    </script>
+</body>
+
+</html>

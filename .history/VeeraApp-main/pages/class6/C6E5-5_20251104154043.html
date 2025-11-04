@@ -1,0 +1,405 @@
+
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Living Object Movement Detection — Veera Kit</title>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide icons CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/lucide.min.js"></script>
+
+  <style>
+    /* small custom styles */
+    .backdrop-blur { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+    /* Slider styles if used later */
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #06b6d4; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+    input[type="range"]::-moz-range-thumb { width:20px; height:20px; border-radius:50%; background:#06b6d4; border:3px solid white; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-6">
+
+  <!-- Audio element for voiceover (keep local file at same folder or update path) -->
+  <audio id="voiceover" src="VOICEOVER_FILE_PATH.mp3" preload="auto"></audio>
+
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-cyan-300">Living Object Movement Detection</h1>
+    <div class="flex gap-3">
+      <button id="backBtn" class="w-12 h-12 bg-cyan-600 hover:bg-cyan-700 rounded-full flex items-center justify-center transition" title="Back">
+        <i data-lucide="arrow-left"></i>
+      </button>
+      <button id="homeBtn" class="w-12 h-12 bg-cyan-600 hover:bg-cyan-700 rounded-full flex items-center justify-center transition" title="Home">
+        <i data-lucide="home"></i>
+      </button>
+      <button id="gridBtn" class="w-12 h-12 bg-cyan-600 hover:bg-cyan-700 rounded-full flex items-center justify-center transition" title="Grid">
+        <i data-lucide="grid-3x3"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 gap-6 h-[calc(100vh-180px)]">
+    <!-- Left Panel -->
+    <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-cyan-500/30">
+      <h2 class="text-xl font-semibold mb-4 text-cyan-300">Veera Kit</h2>
+
+      <div class="bg-slate-700/50 rounded-xl p-4 mb-4">
+        <div class="text-center text-sm text-gray-300 mb-2">PIR Motion Sensor</div>
+        <div class="w-full h-48 bg-gradient-to-b from-blue-900 to-slate-800 rounded-lg flex items-center justify-center">
+          <div class="text-6xl">📡</div>
+        </div>
+        <div class="mt-4 text-xs text-gray-400 text-center">
+          Sensor detects infrared radiation from living objects
+        </div>
+      </div>
+
+      <!-- Sensor Reading -->
+      <div class="bg-slate-700/50 rounded-xl p-4 mb-4">
+        <h3 class="text-sm font-semibold mb-2 text-cyan-300">Sensor Reading</h3>
+        <div class="bg-slate-900 rounded-lg p-4 text-center">
+          <div id="sensorValueText" class="text-4xl font-bold text-cyan-400">0</div>
+          <div class="text-sm text-gray-400 mt-1">Motion Level</div>
+        </div>
+      </div>
+
+      <!-- Threshold Settings -->
+      <div class="bg-slate-700/50 rounded-xl p-4">
+        <h3 class="text-sm font-semibold mb-3 text-cyan-300">Threshold Settings</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs text-gray-400 mb-1 block">Set Threshold</label>
+            <input id="thresholdInput" type="number" value="50" min="0" max="100"
+              class="w-full bg-slate-900 rounded px-3 py-2 text-white border border-cyan-500/30 focus:border-cyan-500 outline-none" />
+          </div>
+          <div class="flex gap-2">
+            <button id="setThresholdBtn" class="flex-1 bg-cyan-600 hover:bg-cyan-700 py-2 rounded font-semibold transition">Set Threshold</button>
+            <button id="resetBtn" class="flex-1 bg-red-600 hover:bg-red-700 py-2 rounded font-semibold transition">Reset</button>
+          </div>
+          <div class="text-xs text-gray-400 text-center">
+            Current: <span id="thresholdLabel">50</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Panel -->
+    <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-cyan-500/30 relative overflow-hidden">
+      <!-- Camera UI -->
+      <div class="absolute top-4 left-4 z-10 flex items-center gap-2">
+        <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+        <span class="text-xs font-mono">REC</span>
+      </div>
+      <div id="clock" class="absolute top-4 right-4 z-10 text-xs font-mono"></div>
+
+      <!-- Camera view -->
+      <div class="relative w-full h-full bg-gradient-to-b from-slate-900 to-slate-800 rounded-xl overflow-hidden border-4 border-slate-700">
+        <!-- Grid overlay -->
+        <div class="absolute inset-0 opacity-20 pointer-events-none">
+          <div class="grid grid-cols-3 grid-rows-3 h-full">
+            <div class="border border-cyan-500"></div><div class="border border-cyan-500"></div><div class="border border-cyan-500"></div>
+            <div class="border border-cyan-500"></div><div class="border border-cyan-500"></div><div class="border border-cyan-500"></div>
+            <div class="border border-cyan-500"></div><div class="border border-cyan-500"></div><div class="border border-cyan-500"></div>
+          </div>
+        </div>
+
+        <!-- Scene background (house/trees) -->
+        <div class="absolute inset-0 flex items-end justify-center pointer-events-none">
+          <div class="w-full h-3/4 bg-gradient-to-t from-green-900/30 to-transparent relative">
+            <!-- House -->
+            <div class="absolute bottom-0 left-1/4 w-32 h-40">
+              <div class="absolute bottom-0 w-full h-32 bg-yellow-900/60 border-2 border-yellow-700"></div>
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[64px] border-r-[64px] border-b-[40px] border-l-transparent border-r-transparent border-b-red-900"></div>
+              <div class="absolute bottom-8 left-8 w-8 h-12 bg-cyan-300/40 border border-cyan-600"></div>
+              <div class="absolute bottom-8 right-8 w-8 h-12 bg-cyan-300/40 border border-cyan-600"></div>
+            </div>
+            <!-- Trees -->
+            <div class="absolute bottom-0 right-1/4">
+              <div class="w-8 h-16 bg-amber-900"></div>
+              <div class="absolute -top-8 -left-4 text-5xl">🌳</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Moving object (emoji) -->
+        <div id="movingObject" class="absolute text-6xl transition-all duration-100 pointer-events-none"
+             style="left:-100%; top:50%;">
+          👤
+        </div>
+
+        <!-- Detection highlight -->
+        <div id="detectionHighlight" class="absolute inset-0 border-4 border-red-500 animate-pulse hidden pointer-events-none"></div>
+
+        <!-- Alert banner -->
+        <div id="alertBanner" class="absolute top-1/4 left-1/2 -translate-x-1/2 bg-red-600 px-6 py-3 rounded-lg font-bold text-xl animate-pulse z-20 hidden">
+          ⚠ MOVEMENT DETECTED! ⚠
+        </div>
+
+        <!-- Status -->
+        <div class="absolute bottom-4 left-4 bg-slate-900/80 px-4 py-2 rounded text-sm z-10">
+          <div class="flex items-center gap-2">
+            <div id="statusDot" class="w-2 h-2 rounded-full bg-green-500"></div>
+            <span id="statusText">AREA SECURE</span>
+          </div>
+        </div>
+
+        <!-- Detection Info -->
+        <div class="absolute bottom-4 right-4 bg-slate-900/80 px-4 py-2 rounded text-xs z-10">
+          <div>Sensitivity: <span id="infoThreshold">50</span>%</div>
+          <div>Signal: <span id="infoSignal">0</span>%</div>
+        </div>
+      </div>
+
+      <!-- Control Panel -->
+      <div class="mt-4 flex justify-center gap-4">
+        <button id="toggleAnimBtn" class="bg-cyan-600 hover:bg-cyan-700 px-6 py-2 rounded-lg font-semibold flex items-center gap-2 transition">
+          <i data-lucide="pause" id="toggleIcon"></i> <span id="toggleText">Pause</span> Simulation
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-cyan-500/30 flex flex-col">
+      <h2 class="text-xl font-semibold mb-4 text-cyan-300">Veera Guide</h2>
+
+      <div class="flex-1 flex items-center justify-center">
+        <img id="veeraImg" src="lion.gif" alt="Veera Avatar" class="max-w-full max-h-96 object-contain" />
+      </div>
+
+      <div class="mt-4 bg-slate-700/50 rounded-xl p-4">
+        <h3 class="font-semibold mb-2 text-cyan-300">About This Experiment</h3>
+        <p class="text-sm text-gray-300 leading-relaxed">
+          PIR (Passive Infrared) sensors detect movement by measuring infrared radiation.
+          Living objects emit heat, which the sensor detects when they move within range.
+          Adjust the threshold to control sensitivity!
+        </p>
+      </div>
+
+      <div class="mt-4 grid grid-cols-2 gap-3">
+        <div class="bg-slate-700/50 rounded-lg p-3 text-center">
+          <div id="detectedYesNo" class="text-2xl font-bold text-cyan-400">NO</div>
+          <div class="text-xs text-gray-400">Detection</div>
+        </div>
+        <div class="bg-slate-700/50 rounded-lg p-3 text-center">
+          <div id="detectedType" class="text-2xl font-bold text-cyan-400">None</div>
+          <div class="text-xs text-gray-400">Object Type</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom navigation -->
+  <div class="mt-6 flex justify-center">
+    <button id="nextBtn" onclick="goNext()" class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 px-12 py-4 rounded-xl font-bold text-lg transition shadow-lg">
+      Next Experiment →
+    </button>
+  </div>
+
+  <script>
+    // initialize lucide icons
+    document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
+
+    // State
+    let sensorValue = 0;
+    let threshold = 50;
+    let inputThreshold = '50';
+    let isMovementDetected = false;
+    let detectedObject = null;
+    let objectPosition = { x: -100, y: 50 }; // percentages
+    let isAnimating = true;
+    let alertActive = false;
+    let animationInterval = null;
+    let sensorInterval = null;
+
+    // DOM references
+    const sensorValueText = document.getElementById('sensorValueText');
+    const thresholdInputEl = document.getElementById('thresholdInput');
+    const thresholdLabel = document.getElementById('thresholdLabel');
+    const setThresholdBtn = document.getElementById('setThresholdBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const movingObject = document.getElementById('movingObject');
+    const detectionHighlight = document.getElementById('detectionHighlight');
+    const alertBanner = document.getElementById('alertBanner');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const infoThreshold = document.getElementById('infoThreshold');
+    const infoSignal = document.getElementById('infoSignal');
+    const detectedYesNo = document.getElementById('detectedYesNo');
+    const detectedType = document.getElementById('detectedType');
+    const toggleAnimBtn = document.getElementById('toggleAnimBtn');
+    const toggleText = document.getElementById('toggleText');
+    const toggleIcon = document.getElementById('toggleIcon');
+    const voiceover = document.getElementById('voiceover');
+    const clock = document.getElementById('clock');
+
+    // Utility: update clock every second
+    function startClock() {
+      function tick() {
+        clock.textContent = new Date().toLocaleTimeString();
+      }
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    // Play voiceover if possible; browsers may block autoplay
+    function tryPlayVoiceover() {
+      voiceover.play().catch(e => {
+        // autoplay prevented; will try on first user interaction
+        console.log('Voiceover play blocked by browser, will attempt after user interaction.');
+      });
+    }
+
+    // get emoji by detectedObject
+    function getObjectEmoji() {
+      if (!detectedObject) return '👤';
+      if (detectedObject === 'person') return '🚶';
+      if (detectedObject === 'cat') return '🐱';
+      if (detectedObject === 'dog') return '🐕';
+      return '👤';
+    }
+
+    // Render UI
+    function render() {
+      sensorValueText.textContent = sensorValue;
+      thresholdLabel.textContent = threshold;
+      infoThreshold.textContent = threshold;
+      infoSignal.textContent = sensorValue;
+
+      // position object
+      movingObject.style.left = objectPosition.x + '%';
+      movingObject.style.top = objectPosition.y + '%';
+      movingObject.textContent = getObjectEmoji();
+
+      // Detection logic visuals
+      if (isMovementDetected) {
+        detectionHighlight.classList.remove('hidden');
+        alertBanner.classList.remove('hidden');
+        statusDot.classList.remove('bg-green-500');
+        statusDot.classList.add('bg-red-500');
+        statusText.textContent = detectedObject ? (detectedObject.toUpperCase() + ' DETECTED') : 'MOVEMENT';
+        detectedYesNo.textContent = 'YES';
+        detectedType.textContent = detectedObject || 'None';
+      } else {
+        detectionHighlight.classList.add('hidden');
+        alertBanner.classList.add('hidden');
+        statusDot.classList.remove('bg-red-500');
+        statusDot.classList.add('bg-green-500');
+        statusText.textContent = 'AREA SECURE';
+        detectedYesNo.textContent = 'NO';
+        detectedType.textContent = 'None';
+      }
+
+      // toggle button text/icon
+      if (isAnimating) {
+        toggleText.textContent = 'Pause';
+        toggleIcon.setAttribute('data-lucide', 'pause');
+      } else {
+        toggleText.textContent = 'Start';
+        toggleIcon.setAttribute('data-lucide', 'play');
+      }
+      // re-create lucide icons for updated icon attr
+      lucide.createIcons();
+    }
+
+    // Simulate sensor data (every 2s)
+    function startSensorSimulation() {
+      if (sensorInterval) clearInterval(sensorInterval);
+      sensorInterval = setInterval(() => {
+        const newValue = Math.floor(Math.random() * 100);
+        sensorValue = newValue;
+        // detection rule: if newValue > threshold => movement detected
+        if (newValue > threshold) {
+          isMovementDetected = true;
+          alertActive = true;
+          const objects = ['person', 'cat', 'dog'];
+          detectedObject = objects[Math.floor(Math.random() * objects.length)];
+        } else {
+          isMovementDetected = false;
+          alertActive = false;
+          detectedObject = null;
+        }
+        render();
+      }, 2000);
+    }
+
+    // Animate object
+    function startAnimation() {
+      if (animationInterval) clearInterval(animationInterval);
+      animationInterval = setInterval(() => {
+        if (!isAnimating) return;
+        objectPosition.x += 2; // move right
+        if (objectPosition.x > 110) {
+          objectPosition.x = -10;
+          objectPosition.y = Math.max(10, Math.min(80, Math.random() * 70));
+        }
+        render();
+      }, 50);
+    }
+
+    // Event handlers
+    setThresholdBtn.addEventListener('click', () => {
+      const v = parseInt(thresholdInputEl.value);
+      if (!isNaN(v) && v >= 0 && v <= 100) {
+        threshold = v;
+        render();
+      } else {
+        alert('Enter valid threshold (0-100).');
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      threshold = 50;
+      thresholdInputEl.value = '50';
+      sensorValue = 0;
+      isMovementDetected = false;
+      detectedObject = null;
+      render();
+    });
+
+    function goNext() { window.location.href = "C6E6.html"; }
+
+    toggleAnimBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      toggleText.textContent = isAnimating ? 'Pause' : 'Start';
+      // update icon
+      toggleIcon.setAttribute('data-lucide', isAnimating ? 'pause' : 'play');
+      lucide.createIcons();
+      // if animation turned on and no interval running, ensure it runs
+      if (isAnimating && !animationInterval) startAnimation();
+    });
+
+    // Try to play voice after user interaction if autoplay blocked
+    ['click', 'keydown', 'touchstart'].forEach(evt => {
+      window.addEventListener(evt, () => {
+        voiceover.play().catch(() => {});
+      }, { once: true });
+    });
+
+    // init
+    function init() {
+      startClock();
+      tryPlayVoiceover();
+      startSensorSimulation();
+      startAnimation();
+      render();
+    }
+
+    window.addEventListener('load', init);
+
+    // Small niceties: wire header buttons to simple actions
+    document.getElementById('backBtn').addEventListener('click', () => console.log('Back pressed'));
+    document.getElementById('homeBtn').addEventListener('click', () => console.log('Home pressed'));
+    document.getElementById('gridBtn').addEventListener('click', () => console.log('Grid pressed'));
+    document.getElementById('nextBtn').addEventListener('click', () => alert('Next Experiment → (placeholder)'));
+
+  </script>
+</body>
+</html>

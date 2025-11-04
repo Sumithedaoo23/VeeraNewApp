@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class 6 - Experiment 4: Automatic Light Control</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Base Styles */
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Custom Keyframes */
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+
+        /* Basic Icon Placeholder Styles (Replacing lucide-react) */
+        .icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            stroke-width: 2;
+        }
+        .icon-chevron-left::before { content: '←'; font-size: 24px; }
+        .icon-home::before { content: '🏠'; font-size: 24px; }
+        .icon-grid3x3::before { content: '🎛️'; font-size: 24px; }
+        .icon-volume2::before { content: '🔊'; font-size: 16px; }
+        .icon-lightbulb::before { content: '💡'; font-size: 20px; }
+        .icon-sun::before { content: '☀️'; font-size: 20px; }
+        .icon-moon::before { content: '🌙'; font-size: 20px; }
+        .icon-trophy::before { content: '🏆'; font-size: 20px; }
+        .icon-zap::before { content: '⚡'; font-size: 12px; }
+    </style>
+</head>
+
+<body>
+    <div id="app-root" class="min-h-screen bg-gradient-to-b from-indigo-50 to-white flex flex-col">
+        <audio id="voiceover-audio" onPlay="window.isAudioPlaying = true; updateUI();" onEnded="window.isAudioPlaying = false; updateUI();">
+            <source src="automatic_light_control_voiceover.mp3" type="audio/mpeg" />
+        </audio>
+
+        <div class="bg-gradient-to-r from-amber-600 to-yellow-600 text-white py-4 px-6 shadow-lg">
+            <div class="flex items-center justify-between max-w-7xl mx-auto">
+                <h1 class="text-2xl font-bold">Class 6 - Experiment 4: Automatic Light Control</h1>
+                <div class="flex gap-3">
+                    <button id="prev-btn" class="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
+                        <i class="icon icon-chevron-left w-6 h-6"></i>
+                    </button>
+                    <button id="home-btn" class="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
+                        <i class="icon icon-home w-6 h-6"></i>
+                    </button>
+                    <button id="levels-btn" class="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
+                        <i class="icon icon-grid3x3 w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 p-6 max-w-7xl mx-auto w-full">
+            <div class="grid grid-cols-12 gap-6 h-full">
+
+                <div class="col-span-3 space-y-4">
+                    <div class="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-xl shadow-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-bold">Score</span>
+                            <i class="icon icon-trophy w-5 h-5"></i>
+                        </div>
+                        <div id="score-display" class="text-4xl font-bold">0</div>
+                        <div id="challenges-completed-display" class="text-xs mt-1">
+                            0/4 Completed
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-5 border-2 border-amber-200">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                            <div id="sensor-light-indicator" class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+                            Light Sensor (LDR)
+                        </h3>
+                        <div class="text-center">
+                            <div id="sensor-value-display" class="text-5xl font-bold text-amber-600 mb-2">
+                                800
+                            </div>
+                            <div class="text-sm text-gray-600 mb-3">Lux Units</div>
+                            <div class="flex items-center justify-center gap-2 text-sm">
+                                <div id="brightness-icon-top">
+                                    <i class="icon icon-sun w-5 h-5 text-yellow-500"></i>
+                                </div>
+                                <span id="brightness-percentage" class="font-medium">80% Bright</span>
+                            </div>
+                        </div>
+
+                        <div id="light-status-box" class="mt-4 text-center px-4 py-3 rounded-lg bg-yellow-100">
+                            <div class="flex items-center justify-center gap-2">
+                                <i id="light-bulb-icon" class="icon icon-lightbulb w-5 h-5 text-yellow-500"></i>
+                                <span id="lights-status-text" class="text-xl font-bold text-yellow-600">
+                                    ON
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-5 border-2 border-amber-200">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">Set Threshold</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-sm font-medium text-gray-700 mb-1 block">
+                                    Threshold Value (Lux)
+                                </label>
+                                <input type="number" value="500" id="input-threshold"
+                                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
+                                    placeholder="Enter threshold" />
+                            </div>
+                            <button id="set-threshold-btn"
+                                class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg transition-colors">
+                                Set Threshold
+                            </button>
+                            <button id="reset-threshold-btn"
+                                class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 rounded-lg transition-colors">
+                                Reset
+                            </button>
+                            <div class="text-center text-sm text-gray-600 mt-2">
+                                Current: <span id="current-threshold-display" class="font-bold text-amber-600">500 Lux</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-span-6 space-y-4">
+
+                    <div class="bg-white rounded-xl shadow-lg p-4 border-2 border-indigo-300">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">🎮 Choose Location Challenge:</h3>
+                        <div id="location-selector-grid" class="grid grid-cols-4 gap-2">
+                            </div>
+                    </div>
+
+                    <div id="main-scene"
+                        class="bg-gradient-to-b from-blue-400 via-blue-300 to-cyan-200 rounded-xl shadow-2xl p-6 h-96 relative overflow-hidden transition-all duration-1000">
+
+                        <div id="sun-moon-indicator" class="absolute transition-all duration-500" style="top: 10%; right: 15%;">
+                            </div>
+
+                        <div id="stars-container" class="absolute inset-0 hidden">
+                            </div>
+
+                        <div id="location-scene-area">
+                            </div>
+
+                        <div id="reaction-box" class="absolute top-6 left-6 bg-white/95 rounded-xl p-4 shadow-lg backdrop-blur max-w-xs">
+                            <div id="reaction-emoji" class="text-4xl mb-2 text-center">😊</div>
+                            <div id="reaction-text" class="text-sm font-bold text-gray-700 text-center">Perfect! Well lit and safe!</div>
+                        </div>
+
+                        <div id="challenge-info-box" class="absolute bottom-6 left-6 right-6 bg-black/70 text-white rounded-xl p-3 backdrop-blur">
+                            </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-4 border-2 border-blue-300">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-md font-bold text-gray-800">🎮 Control Time of Day</h3>
+                            <span id="control-brightness-percentage" class="text-sm text-gray-600">80% Brightness</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="icon icon-moon w-5 h-5 text-indigo-600"></i>
+                            <input type="range" min="0" max="100" value="80" id="manual-brightness-slider"
+                                class="flex-1 h-2 bg-gradient-to-r from-indigo-900 via-orange-400 to-yellow-400 rounded-lg appearance-none cursor-pointer"
+                                style="accentColor: #f59e0b" />
+                            <i class="icon icon-sun w-5 h-5 text-yellow-500"></i>
+                        </div>
+                        <p class="text-xs text-center text-gray-600 mt-2">
+                            Drag to change brightness and test your threshold!
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-span-3 space-y-4">
+                    <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl shadow-lg p-4 border-2 border-yellow-200">
+                        <div class="flex flex-col items-center">
+                            <img src="lion.gif" alt="Veera Avatar" class="w-48 h-48 object-contain" />
+                            <div class="mt-3 text-center">
+                                <p id="veera-speaking-status" class="text-sm font-medium text-gray-700">
+                                    Hi! I'm Veera 🦁
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-lg p-4 border-2 border-blue-300">
+                        <h3 class="text-md font-bold text-gray-800 mb-2">🎯 How to Play:</h3>
+                        <ol class="text-xs text-gray-700 space-y-2">
+                            <li class="flex gap-2">
+                                <span class="font-bold">1.</span>
+                                <span>Choose a location challenge</span>
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="font-bold">2.</span>
+                                <span>Set the threshold value</span>
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="font-bold">3.</span>
+                                <span>Use the slider to test day/night</span>
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="font-bold">4.</span>
+                                <span>Watch character reactions!</span>
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="font-bold">5.</span>
+                                <span>Complete all 4 locations!</span>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-4 border-2 border-amber-200">
+                        <h3 class="text-md font-bold text-gray-800 mb-2">Learning Points:</h3>
+                        <ul class="text-sm text-gray-700 space-y-2">
+                            <li class="flex items-start gap-2">
+                                <span class="text-amber-600 font-bold">•</span>
+                                <span>LDR measures light intensity</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-amber-600 font-bold">•</span>
+                                <span>Threshold controls automation</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-amber-600 font-bold">•</span>
+                                <span>Different places need different settings</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-amber-600 font-bold">•</span>
+                                <span>Balance safety and energy savings</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border-t border-gray-200 p-4">
+            <div class="max-w-7xl mx-auto flex justify-center">
+                <button id="next-experiment-btn" onclick="goNext()"
+                    class="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-12 rounded-full shadow-lg transition-all transform hover:scale-105">
+                    Next Experiment →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE VARIABLES (Window Scope) ---
+        window.sensorValue = 800;
+        window.threshold = 500;
+        window.inputThreshold = '500';
+        window.isAudioPlaying = false;
+        window.manualBrightness = 80;
+        window.selectedLocation = 'street';
+        window.score = 0;
+        window.challengeCompleted = {
+            street: false,
+            park: false,
+            school: false,
+            home: false
+        };
+
+        function goNext() { window.location.href = "C6E5.html"; }
+
+        // --- DATA ---
+        const locations = {
+            street: {
+                name: 'City Street',
+                icon: '🏙️',
+                optimalThreshold: 450,
+                description: 'Street lights for evening commuters',
+                challenge: 'Turn lights ON when brightness drops below 50%'
+            },
+            park: {
+                name: 'Public Park',
+                icon: '🌳',
+                optimalThreshold: 400,
+                description: 'Park safety lighting',
+                challenge: 'Lights should activate earlier for safety'
+            },
+            school: {
+                name: 'School Campus',
+                icon: '🏫',
+                optimalThreshold: 350,
+                description: 'Energy-efficient campus lighting',
+                challenge: 'Save energy - lights ON only when quite dark'
+            },
+            home: {
+                name: 'Home Porch',
+                icon: '🏠',
+                optimalThreshold: 500,
+                description: 'Automatic porch lighting',
+                challenge: 'Welcoming light as evening approaches'
+            }
+        };
+
+        // --- DOM ELEMENTS (Cached) ---
+        const audioEl = document.getElementById('voiceover-audio');
+        const manualBrightnessSliderEl = document.getElementById('manual-brightness-slider');
+        const sensorValueDisplayEl = document.getElementById('sensor-value-display');
+        const currentThresholdDisplayEl = document.getElementById('current-threshold-display');
+        const inputThresholdEl = document.getElementById('input-threshold');
+        const setThresholdBtn = document.getElementById('set-threshold-btn');
+        const resetThresholdBtn = document.getElementById('reset-threshold-btn');
+        const scoreDisplayEl = document.getElementById('score-display');
+        const challengesCompletedDisplayEl = document.getElementById('challenges-completed-display');
+        const brightnessPercentageEl = document.getElementById('brightness-percentage');
+        const controlBrightnessPercentageEl = document.getElementById('control-brightness-percentage');
+        const brightnessIconTopEl = document.getElementById('brightness-icon-top');
+        const lightStatusBoxEl = document.getElementById('light-status-box');
+        const lightBulbIconEl = document.getElementById('light-bulb-icon');
+        const lightsStatusTextEl = document.getElementById('lights-status-text');
+        const locationSelectorGridEl = document.getElementById('location-selector-grid');
+        const mainSceneEl = document.getElementById('main-scene');
+        const sunMoonIndicatorEl = document.getElementById('sun-moon-indicator');
+        const starsContainerEl = document.getElementById('stars-container');
+        const locationSceneAreaEl = document.getElementById('location-scene-area');
+        const reactionEmojiEl = document.getElementById('reaction-emoji');
+        const reactionTextEl = document.getElementById('reaction-text');
+        const challengeInfoBoxEl = document.getElementById('challenge-info-box');
+        const veeraSpeakingStatusEl = document.getElementById('veera-speaking-status');
+        const sensorLightIndicatorEl = document.getElementById('sensor-light-indicator');
+
+        // --- UTILITY FUNCTIONS ---
+        const getSkyGradient = (brightness) => {
+            if (brightness > 80) return 'from-blue-400 via-blue-300 to-cyan-200';
+            if (brightness > 60) return 'from-blue-500 via-blue-400 to-blue-300';
+            if (brightness > 40) return 'from-orange-400 via-pink-400 to-purple-400';
+            if (brightness > 20) return 'from-indigo-600 via-purple-700 to-indigo-800';
+            return 'from-indigo-900 via-purple-900 to-black';
+        };
+
+        const getCharacterReaction = (currentLocation, lightsOn, brightness) => {
+            const shouldBeOn = brightness < 50;
+
+            if (shouldBeOn && lightsOn) return { emoji: '😊', text: 'Perfect! Well lit and safe!' };
+            if (!shouldBeOn && !lightsOn) return { emoji: '😄', text: 'Great! Saving energy!' };
+            if (shouldBeOn && !lightsOn) return { emoji: '😟', text: 'Too dark! Need lights!' };
+            return { emoji: '😕', text: 'Wasting energy in daylight!' };
+        };
+
+        const checkChallenge = (newThreshold) => {
+            const location = locations[window.selectedLocation];
+            const diff = Math.abs(newThreshold - location.optimalThreshold);
+
+            if (diff <= 50 && !window.challengeCompleted[window.selectedLocation]) {
+                window.challengeCompleted = { ...window.challengeCompleted, [window.selectedLocation]: true };
+                window.score += 25;
+            }
+        };
+
+        // --- RENDER FUNCTIONS ---
+        const renderLocationButtons = () => {
+            let html = '';
+            Object.entries(locations).forEach(([key, loc]) => {
+                const isSelected = window.selectedLocation === key;
+                const isCompleted = window.challengeCompleted[key];
+                
+                html += `
+                    <button
+                        data-location="${key}"
+                        class="p-3 rounded-lg border-2 transition-all ${
+                            isSelected 
+                                ? 'border-amber-500 bg-amber-50 scale-105' 
+                                : 'border-gray-300 hover:border-amber-300'
+                        }"
+                    >
+                        <div class="text-2xl mb-1">${loc.icon}</div>
+                        <div class="text-xs font-bold text-gray-700">${loc.name}</div>
+                        ${isCompleted ? `<div class="text-green-600 mt-1">✓</div>` : ''}
+                    </button>
+                `;
+            });
+            locationSelectorGridEl.innerHTML = html;
+
+            // Re-attach event listeners to new buttons
+            locationSelectorGridEl.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    window.selectedLocation = button.getAttribute('data-location');
+                    updateUI();
+                });
+            });
+        };
+
+        const renderLocationScene = (lightsOn) => {
+            const location = window.selectedLocation;
+            let html = '';
+            
+            if (location === 'street') {
+                html = `
+                    <div class="absolute bottom-0 left-0 right-0 h-24 bg-gray-700"></div>
+                    <div class="absolute bottom-24 left-0 right-0 flex justify-around px-8">
+                        ${[...Array(4)].map((_, i) => `
+                            <div class="flex flex-col items-center">
+                                ${lightsOn ? `<div class="absolute top-0 w-16 h-16 bg-yellow-300 rounded-full blur-xl opacity-60"></div>` : ''}
+                                <div class="w-6 h-5 rounded-t-lg ${lightsOn ? 'bg-yellow-400' : 'bg-gray-600'}"></div>
+                                <div class="w-2 h-24 bg-gray-600"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (location === 'park') {
+                html = `
+                    <div class="absolute bottom-0 left-0 right-0 h-16 bg-green-700"></div>
+                    <div class="absolute bottom-16 left-1/4 w-12 h-20 bg-green-800 rounded-t-full"></div>
+                    <div class="absolute bottom-16 right-1/4 w-12 h-20 bg-green-800 rounded-t-full"></div>
+                    <div class="absolute bottom-16 left-1/2 transform -translate-x-1/2">
+                        ${lightsOn ? `<div class="absolute -top-4 left-1/2 transform -translate-x-1/2 w-20 h-20 bg-yellow-300 rounded-full blur-xl opacity-60"></div>` : ''}
+                        <div class="w-6 h-5 rounded-t-lg ${lightsOn ? 'bg-yellow-400' : 'bg-gray-600'}"></div>
+                        <div class="w-2 h-20 bg-gray-600 mx-auto"></div>
+                    </div>
+                `;
+            } else if (location === 'school') {
+                html = `
+                    <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-48 h-32 bg-red-800">
+                        <div class="absolute top-2 left-2 right-2 grid grid-cols-4 gap-2">
+                            ${[...Array(8)].map((_, i) => `
+                                <div class="h-8 ${lightsOn ? 'bg-yellow-300' : 'bg-blue-900'}"></div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-8 h-12 bg-red-900"></div>
+                    <div class="absolute bottom-44 left-1/2 transform -translate-x-1/2 w-20 h-2 bg-red-900"></div>
+                `;
+            } else if (location === 'home') {
+                html = `
+                    <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-24 bg-yellow-700">
+                        <div class="absolute top-2 left-1/2 transform -translate-x-1/2 w-12 h-16 bg-blue-900"></div>
+                    </div>
+                    <div class="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-40 h-2 bg-red-800"></div>
+                    <div class="absolute bottom-[104px] left-1/2 transform -translate-x-1/2">
+                        ${lightsOn ? `<div class="absolute w-20 h-20 bg-yellow-300 rounded-full blur-xl opacity-70"></div>` : ''}
+                    </div>
+                    ${lightsOn ? `<div class="absolute top-6 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-yellow-400 rounded-full"></div>` : ''}
+                `;
+            }
+            locationSceneAreaEl.innerHTML = html;
+        };
+        
+        const renderStars = (brightness) => {
+            if (brightness < 40) {
+                starsContainerEl.classList.remove('hidden');
+                starsContainerEl.innerHTML = `
+                    ${[...Array(15)].map((_, i) => `
+                        <div
+                          class="absolute w-1 h-1 bg-white rounded-full"
+                          style="
+                            left: ${(i * 47) % 100}%;
+                            top: ${(i * 23) % 50}%;
+                            opacity: ${0.5 + Math.random() * 0.5}
+                          "
+                        ></div>
+                    `).join('')}
+                `;
+            } else {
+                starsContainerEl.classList.add('hidden');
+                starsContainerEl.innerHTML = '';
+            }
+        };
+
+        // --- MAIN UPDATE FUNCTION ---
+        const updateUI = () => {
+            // Calculated values
+            const lightsOn = window.sensorValue < window.threshold;
+            const brightness = Math.round((window.sensorValue / 1000) * 100);
+            const currentLoc = locations[window.selectedLocation];
+            const reaction = getCharacterReaction(window.selectedLocation, lightsOn, brightness);
+
+            // --- 1. Left Side Updates ---
+            window.sensorValue = window.manualBrightness * 10;
+            manualBrightnessSliderEl.value = window.manualBrightness;
+
+            sensorValueDisplayEl.textContent = Math.round(window.sensorValue);
+            currentThresholdDisplayEl.textContent = `${window.threshold} Lux`;
+            inputThresholdEl.value = window.inputThreshold;
+            scoreDisplayEl.textContent = window.score;
+            
+            const completedCount = Object.values(window.challengeCompleted).filter(v => v).length;
+            challengesCompletedDisplayEl.textContent = `${completedCount}/4 Completed`;
+
+            // Brightness info
+            brightnessPercentageEl.textContent = `${brightness}% Bright`;
+            controlBrightnessPercentageEl.textContent = `${brightness}% Brightness`;
+            
+            brightnessIconTopEl.innerHTML = brightness > 50 
+                ? `<i class="icon icon-sun w-5 h-5 text-yellow-500"></i>`
+                : `<i class="icon icon-moon w-5 h-5 text-indigo-400"></i>`;
+            
+            // Light Status Box
+            lightStatusBoxEl.className = `mt-4 text-center px-4 py-3 rounded-lg ${lightsOn ? 'bg-yellow-100' : 'bg-gray-100'}`;
+            lightBulbIconEl.className = `icon icon-lightbulb w-5 h-5 ${lightsOn ? 'text-yellow-500' : 'text-gray-400'}`;
+            lightsStatusTextEl.className = `text-xl font-bold ${lightsOn ? 'text-yellow-600' : 'text-gray-600'}`;
+            lightsStatusTextEl.textContent = lightsOn ? 'ON' : 'OFF';
+
+            // Sensor Light Indicator
+            sensorLightIndicatorEl.classList.toggle('bg-green-500', brightness > 40);
+            sensorLightIndicatorEl.classList.toggle('bg-yellow-500', brightness <= 40 && brightness > 20);
+            sensorLightIndicatorEl.classList.toggle('bg-red-500', brightness <= 20);
+
+            // --- 2. Center Scene Updates ---
+            
+            // Sky Gradient
+            const skyGradientClass = getSkyGradient(brightness);
+            mainSceneEl.className = mainSceneEl.className.replace(/from-\S* via-\S* to-\S*/g, '');
+            mainSceneEl.classList.add(...skyGradientClass.split(' ').filter(c => c));
+
+            // Sun/Moon position
+            sunMoonIndicatorEl.style.right = brightness > 50 ? '15%' : '20%';
+            sunMoonIndicatorEl.innerHTML = brightness > 50 
+                ? `<div class="relative"><div class="w-16 h-16 bg-yellow-400 rounded-full shadow-2xl"></div><div class="absolute inset-0 w-16 h-16 bg-yellow-300 rounded-full animate-ping opacity-20"></div></div>`
+                : `<div class="w-14 h-14 bg-gray-200 rounded-full shadow-lg"></div>`;
+
+            // Stars
+            renderStars(brightness);
+
+            // Location Scene Rendering
+            renderLocationScene(lightsOn);
+            renderLocationButtons();
+
+            // Reaction
+            reactionEmojiEl.textContent = reaction.emoji;
+            reactionTextEl.textContent = reaction.text;
+
+            // Challenge Info
+            challengeInfoBoxEl.innerHTML = `
+                <div class="text-xs font-bold mb-1">
+                    ${currentLoc.icon} ${currentLoc.name}
+                </div>
+                <div class="text-xs">
+                    Challenge: ${currentLoc.challenge}
+                </div>
+                ${window.challengeCompleted[window.selectedLocation] ? `
+                    <div class="text-green-400 text-xs mt-1 flex items-center gap-1">
+                        <i class="icon icon-zap w-3 h-3"></i> +25 Points Earned!
+                    </div>
+                ` : ''}
+            `;
+
+            // --- 3. Right Side Veera Status ---
+            if (window.isAudioPlaying) {
+                veeraSpeakingStatusEl.innerHTML = `
+                    <span class="flex items-center justify-center gap-2 text-amber-600">
+                        <i class="icon icon-volume2 w-4 h-4 animate-pulse"></i>
+                        Speaking...
+                    </span>
+                `;
+            } else {
+                veeraSpeakingStatusEl.innerHTML = "Hi! I'm Veera 🦁";
+            }
+        };
+
+        // --- HANDLERS ---
+        const handleSetThreshold = () => {
+            const value = parseInt(inputThresholdEl.value);
+            if (!isNaN(value) && value >= 0) {
+                window.threshold = value;
+                window.inputThreshold = value.toString();
+                checkChallenge(value);
+            } else {
+                window.inputThreshold = window.threshold.toString();
+            }
+            updateUI();
+        };
+
+        const handleResetThreshold = () => {
+            window.threshold = 500;
+            window.inputThreshold = '500';
+            updateUI();
+        };
+
+        const handleBrightnessChange = (e) => {
+            window.manualBrightness = parseInt(e.target.value);
+            updateUI();
+        };
+        
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Auto-play audio
+            if (audioEl) {
+                audioEl.play().catch(err => console.log('Audio autoplay prevented:', err));
+            }
+
+            // Attach Event Listeners
+            manualBrightnessSliderEl.addEventListener('input', handleBrightnessChange);
+            setThresholdBtn.addEventListener('click', handleSetThreshold);
+            resetThresholdBtn.addEventListener('click', handleResetThreshold);
+            inputThresholdEl.addEventListener('input', (e) => {
+                window.inputThreshold = e.target.value;
+            });
+
+            // Navigation Placeholders
+            document.getElementById('prev-btn').addEventListener('click', () => window.history.back());
+            document.getElementById('home-btn').addEventListener('click', () => console.log('Navigate to home'));
+            document.getElementById('levels-btn').addEventListener('click', () => console.log('Navigate to levels'));
+            document.getElementById('next-experiment-btn').addEventListener('click', () => console.log('Navigate to next experiment'));
+
+            // Initial Render
+            renderLocationButtons();
+            updateUI();
+        });
+    </script>
+</body>
+
+</html>

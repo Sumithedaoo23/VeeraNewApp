@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Water Level Alerting</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Comic Sans MS", "Arial Rounded MT Bold", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      position: relative;
+      text-align: center;
+      overflow-x: hidden;
+      color: #222;
+      padding: 20px;
+    }
+
+    /* Animated water drops */
+    .water-drops {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .water-drop {
+      position: absolute;
+      width: 15px;
+      height: 20px;
+      background: rgba(100, 200, 255, 0.6);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(45deg);
+      animation: drop-fall 4s linear infinite;
+    }
+
+    @keyframes drop-fall {
+      0% { top: -30px; opacity: 0.8; }
+      100% { top: 110vh; opacity: 0; }
+    }
+
+    /* Decorative Clips */
+    .clip-top {
+      position: absolute;
+      top: 90px;
+      left: 20px;
+      width: 140px;
+      opacity: 0.9;
+      z-index: 5;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+      animation: float-clip 4s ease-in-out infinite;
+    }
+
+    .clip-bottom {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 170px;
+      opacity: 0.9;
+      z-index: 5;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+      animation: float-clip 5s ease-in-out infinite;
+    }
+
+    @keyframes float-clip {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(3deg); }
+    }
+
+    /* Header */
+    .header-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    .heading {
+      font-size: 2.5rem;
+      font-weight: bold;
+      padding: 20px 45px;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      color: #fff;
+      border-radius: 25px;
+      box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+      animation: bounce-in 0.6s ease-out;
+      border: 4px solid rgba(255, 255, 255, 0.5);
+    }
+
+    @keyframes bounce-in {
+      0% { transform: scale(0.8); opacity: 0; }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .top-icons {
+      position: fixed;
+      top: 20px;
+      right: 30px;
+      display: flex;
+      gap: 15px;
+      z-index: 100;
+    }
+
+    .top-icons img {
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 50%;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .top-icons img:hover {
+      transform: scale(1.15) rotate(10deg);
+      background: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Main Content */
+    .content {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 50px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 10;
+      max-width: 1400px;
+    }
+
+    /* Water Tank Container */
+    .tank-container {
+      animation: slide-in-left 0.8s ease-out;
+      position: relative;
+    }
+
+    @keyframes slide-in-left {
+      from { transform: translateX(-100px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .tank-wrapper {
+      position: relative;
+      width: 350px;
+      height: 500px;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(15px);
+      border-radius: 25px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      border: 3px solid rgba(255, 255, 255, 0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .tank-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #2f2f2f;
+      text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    }
+
+    .water-tank {
+      position: relative;
+      width: 250px;
+      height: 350px;
+      background: linear-gradient(to bottom, 
+        rgba(200, 220, 255, 0.3) 0%,
+        rgba(180, 210, 255, 0.5) 100%);
+      border: 5px solid #4a90e2;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.2),
+                  0 5px 20px rgba(74, 144, 226, 0.3);
+    }
+
+    .water-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0%;
+      background: linear-gradient(to top,
+        #1e90ff 0%,
+        #4facfe 50%,
+        #00d4ff 100%);
+      transition: height 0.8s ease;
+      animation: water-wave 2s ease-in-out infinite;
+    }
+
+    @keyframes water-wave {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .water-fill::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: -50%;
+      width: 200%;
+      height: 20px;
+      background: radial-gradient(ellipse at center, 
+        rgba(255, 255, 255, 0.3) 0%, 
+        transparent 70%);
+      animation: wave-motion 3s ease-in-out infinite;
+    }
+
+    @keyframes wave-motion {
+      0%, 100% { transform: translateX(0) translateY(0); }
+      50% { transform: translateX(-25%) translateY(3px); }
+    }
+
+    .tank-level-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      z-index: 10;
+    }
+
+    .threshold-marker {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: #ff4444;
+      z-index: 5;
+      transition: bottom 0.3s ease;
+    }
+
+    .threshold-marker::before {
+      content: '⚠️ ALERT LINE';
+      position: absolute;
+      right: -120px;
+      top: -10px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #ff4444;
+      white-space: nowrap;
+    }
+
+    .item {
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(15px);
+      border-radius: 25px;
+      padding: 30px 25px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      border: 3px solid rgba(255, 255, 255, 0.6);
+      animation: fade-in-up 0.8s ease-out;
+    }
+
+    @keyframes fade-in-up {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .item:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    .item img {
+      width: 180px;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+      transition: transform 0.3s ease;
+    }
+
+    .item img:hover {
+      transform: scale(1.1);
+    }
+
+    .item p {
+      font-weight: bold;
+      font-size: 1.3rem;
+      color: #2f2f2f;
+      text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 14px 30px;
+      border-radius: 30px;
+      border: none;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      color: #fff;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn:hover {
+      transform: scale(1.1);
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn-measure {
+      background: linear-gradient(135deg, #38b000, #5ed73e);
+    }
+
+    .btn-measure:hover {
+      box-shadow: 0 6px 20px rgba(56, 176, 0, 0.5);
+    }
+
+    .btn-set {
+      background: linear-gradient(135deg, #0077ff, #00b4ff);
+    }
+
+    .btn-set:hover {
+      box-shadow: 0 6px 20px rgba(0, 119, 255, 0.5);
+    }
+
+    .btn-reset {
+      background: linear-gradient(135deg, #d62828, #ff6b6b);
+    }
+
+    .btn-reset:hover {
+      box-shadow: 0 6px 20px rgba(214, 40, 40, 0.5);
+    }
+
+    /* Distance display */
+    #distance-result {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #2f2f2f;
+      padding: 12px 25px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      min-width: 180px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Distance bar */
+    #distance-bar {
+      width: 220px;
+      height: 30px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.6);
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    #distance-bar span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38b000, #5ed73e);
+      transition: width 0.8s ease, background 0.5s;
+      position: relative;
+      border-radius: 15px;
+    }
+
+    #distance-bar span::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      to { left: 100%; }
+    }
+
+    /* Input Threshold */
+    .threshold-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 12px 20px;
+      border-radius: 15px;
+    }
+
+    .threshold-container label {
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #2f2f2f;
+    }
+
+    .threshold-container input {
+      width: 90px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 3px solid rgba(79, 172, 254, 0.5);
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.1rem;
+      background: rgba(255, 255, 255, 0.9);
+      transition: all 0.3s ease;
+    }
+
+    .threshold-container input:focus {
+      outline: none;
+      border-color: #4facfe;
+      box-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
+      transform: scale(1.05);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* Buzzer - special styling */
+    .buzzer-item {
+      min-height: 300px;
+      justify-content: center;
+    }
+
+    .buzzer-img {
+      width: 140px !important;
+    }
+
+    .buzzer-active {
+      animation: buzz-shake 0.5s ease-in-out infinite;
+    }
+
+    @keyframes buzz-shake {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-10deg); }
+      75% { transform: rotate(10deg); }
+    }
+
+    /* Lion */
+    .lion-item {
+      min-height: 300px;
+      justify-content: center;
+    }
+
+    .lion {
+      width: 280px !important;
+      height: 280px;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+      filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.25));
+    }
+
+    .lion:hover {
+      transform: scale(1.1);
+    }
+
+    /* Next Button */
+    .next-btn {
+      margin: 50px 0 30px 0;
+      padding: 20px 50px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 10;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .next-btn:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+    }
+
+    .next-btn:active {
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    .next-btn span {
+      font-size: 2rem;
+      animation: bounce 1s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      padding: 18px 35px;
+      border-radius: 20px;
+      opacity: 0;
+      transition: all 0.4s ease;
+      font-weight: bold;
+      font-size: 1.1rem;
+      z-index: 999;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+      .heading {
+        font-size: 1.8rem;
+        padding: 15px 30px;
+      }
+
+      .content {
+        gap: 30px;
+      }
+
+      .tank-wrapper {
+        width: 90%;
+        max-width: 300px;
+      }
+
+      .water-tank {
+        width: 200px;
+        height: 300px;
+      }
+
+      .lion {
+        width: 220px !important;
+        height: 220px;
+      }
+
+      .item {
+        padding: 25px 20px;
+      }
+
+      .button-group {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .button-group .btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .heading {
+        font-size: 1.4rem;
+        padding: 12px 20px;
+      }
+
+      .lion {
+        width: 180px !important;
+        height: 180px;
+      }
+
+      #distance-bar {
+        width: 180px;
+      }
+
+      .water-tank {
+        width: 180px;
+        height: 250px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Animated water drops -->
+  <div class="water-drops" id="waterDropsContainer"></div>
+
+  <!-- Clips -->
+  <img src="../../assets/images/clip-top.png" class="clip-top" alt="Clip top" />
+  <img src="../../assets/images/clip-bottom.png" class="clip-bottom" alt="Clip bottom" />
+
+  <!-- Header -->
+  <div class="header-container">
+    <div class="heading">💧 Water Level Alerting 🚨</div>
+    <div class="top-icons">
+      <img src="../../assets/icons/home.png" alt="Home" onclick="goHome()" />
+      <img src="../../assets/icons/achievements.png" alt="Achievements" onclick="goAchievements()" />
+      <img src="../../assets/icons/logout.png" alt="Back" onclick="goBack()" />
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <!-- Water Tank Display -->
+    <div class="tank-container">
+      <div class="tank-wrapper">
+        <div class="tank-title">🚰 Water Tank</div>
+        <div class="water-tank">
+          <div class="water-fill" id="waterFill"></div>
+          <div class="tank-level-text" id="tankLevelText">0%</div>
+          <div class="threshold-marker" id="thresholdMarker"></div>
+        </div>
+        <div style="font-size: 1rem; color: #2f2f2f; font-weight: bold;" id="tankStatus">
+          Tank Ready
+        </div>
+      </div>
+    </div>
+
+    <!-- Ultrasonic Sensor -->
+    <div class="item">
+      <img src="../../assets/images/ultrasonic.png" alt="Ultrasonic Sensor" />
+      <p>📡 Ultrasonic Sensor</p>
+      <button id="btn-measure" class="btn btn-measure">🔍 Measure Distance</button>
+      <div id="distance-result">Distance: -- cm</div>
+      <div id="distance-bar"><span></span></div>
+
+      <div class="threshold-container">
+        <label for="threshold">⚠️ Threshold:</label>
+        <input type="number" id="threshold" min="1" max="100" value="30" />
+        <span style="font-weight: bold;">cm</span>
+      </div>
+
+      <div class="button-group">
+        <button id="btn-set" class="btn btn-set">✓ Set</button>
+        <button id="btn-reset" class="btn btn-reset">↻ Reset</button>
+      </div>
+    </div>
+
+    <!-- Buzzer -->
+    <div class="item buzzer-item">
+      <img src="../../assets/images/buzzer.png" alt="Buzzer" class="buzzer-img" id="buzzerImg" />
+      <p>🔔 Buzzer</p>
+      <p id="buzzer-status" style="font-size: 1rem; color: #666; font-weight: bold;">Ready to Alert!</p>
+    </div>
+
+    <!-- Lion -->
+    <div class="item lion-item">
+      <img src="../../assets/images/lion.png" alt="Lion Mascot" class="lion" id="lion" />
+    </div>
+  </div>
+
+  <!-- Next Experiment -->
+  <button class="next-btn" onclick="goNext()">
+    Next Experiment <span>🦁</span>
+  </button>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Audio -->
+  <audio id="voice" autoplay>
+    <source src="../../assets/voice/VOICE OVER PAGE 13.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    // Create animated water drops
+    const waterDropsContainer = document.getElementById('waterDropsContainer');
+    for (let i = 0; i < 20; i++) {
+      const drop = document.createElement('div');
+      drop.className = 'water-drop';
+      drop.style.left = Math.random() * 100 + '%';
+      drop.style.animationDelay = Math.random() * 4 + 's';
+      drop.style.animationDuration = (3 + Math.random() * 2) + 's';
+      waterDropsContainer.appendChild(drop);
+    }
+
+    const audio = document.getElementById("voice");
+    const lion = document.getElementById("lion");
+    const result = document.getElementById("distance-result");
+    const bar = document.querySelector("#distance-bar span");
+    const buzzerImg = document.getElementById("buzzerImg");
+    const buzzerStatus = document.getElementById("buzzer-status");
+    const toast = document.getElementById("toast");
+    const waterFill = document.getElementById("waterFill");
+    const tankLevelText = document.getElementById("tankLevelText");
+    const tankStatus = document.getElementById("tankStatus");
+    const thresholdMarker = document.getElementById("thresholdMarker");
+
+    let currentThreshold = 30;
+    let maxDistance = 100; // Maximum distance for calculation
+
+    // Toast notification
+    function showToast(msg, type = "success") {
+      toast.textContent = msg;
+      toast.style.background = type === "success" 
+        ? "linear-gradient(135deg, #38b000, #5ed73e)"
+        : "linear-gradient(135deg, #d62828, #ff6b6b)";
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2500);
+    }
+
+    // Update threshold marker position
+    function updateThresholdMarker() {
+      const percentage = ((maxDistance - currentThreshold) / maxDistance) * 100;
+      thresholdMarker.style.bottom = percentage + '%';
+    }
+
+    // Update tank based on distance
+    function updateTank(distance) {
+      // Convert distance to water level percentage
+      // Lower distance = Higher water level
+      // If distance is 0, tank is 100% full
+      // If distance is maxDistance (100), tank is 0% full
+      const waterLevel = Math.max(0, Math.min(100, ((maxDistance - distance) / maxDistance) * 100));
+      
+      waterFill.style.height = waterLevel + '%';
+      tankLevelText.textContent = Math.round(waterLevel) + '%';
+
+      // Check against threshold
+      if (distance <= currentThreshold) {
+        // Water level is ABOVE threshold (distance is small = water is high)
+        waterFill.style.background = "linear-gradient(to top, #ff4444 0%, #ff6b6b 50%, #ff8888 100%)";
+        tankStatus.textContent = "🚨 OVERFLOW ALERT!";
+        tankStatus.style.color = "#d62828";
+        buzzerImg.classList.add("buzzer-active");
+        buzzerStatus.textContent = "🚨 ALERT! Water Too High!";
+        buzzerStatus.style.color = "#d62828";
+      } else if (distance <= currentThreshold + 20) {
+        // Warning zone
+        waterFill.style.background = "linear-gradient(to top, #ffd93d 0%, #ffb700 50%, #ffa500 100%)";
+        tankStatus.textContent = "⚠️ Warning: Getting Full";
+        tankStatus.style.color = "#ff8800";
+        buzzerImg.classList.remove("buzzer-active");
+        buzzerStatus.textContent = "⚠️ Water Getting High";
+        buzzerStatus.style.color = "#ff8800";
+      } else {
+        // Safe zone
+        waterFill.style.background = "linear-gradient(to top, #1e90ff 0%, #4facfe 50%, #00d4ff 100%)";
+        tankStatus.textContent = "✓ Tank Level Safe";
+        tankStatus.style.color = "#38b000";
+        buzzerImg.classList.remove("buzzer-active");
+        buzzerStatus.textContent = "✓ Water Level Safe";
+        buzzerStatus.style.color = "#38b000";
+      }
+    }
+
+    // Initialize threshold marker
+    updateThresholdMarker();
+
+    audio.play().catch(() => {
+      document.body.addEventListener("click", () => audio.play(), { once: true });
+    });
+
+    audio.addEventListener("play", () => (lion.src = "../../assets/images/lion.gif"));
+    audio.addEventListener("ended", () => (lion.src = "../../assets/images/lion.png"));
+
+    // Navigation
+    function goNext() { window.location.href = "C5E5.html"; }
+    function goHome() { window.location.href = "../welcome.html"; }
+    function goAchievements() { window.location.href = "../page4.html"; }
+    function goBack() { window.history.back(); }
+
+    // Serial Communication
+    document.getElementById("btn-measure").addEventListener("click", () => {
+      window.serialAPI?.send("MEASURE_DISTANCE");
+      showToast("📡 Measuring water level...");
+      result.innerText = "Measuring...";
+    });
+
+    document.getElementById("btn-set").addEventListener("click", () => {
+      const threshold = parseInt(document.getElementById("threshold").value);
+      if (!threshold || threshold < 1 || threshold > 100) {
+        showToast("⚠️ Please enter a valid threshold (1-100 cm)!", "error");
+        return;
+      }
+      currentThreshold = threshold;
+      updateThresholdMarker();
+      window.serialAPI?.send(`SET_THRESHOLD:${threshold}`);
+      showToast(`✅ Threshold set to ${threshold} cm`);
+    });
+
+    document.getElementById("btn-reset").addEventListener("click", () => {
+      document.getElementById("threshold").value = 30;
+      currentThreshold = 30;
+      updateThresholdMarker();
+      window.serialAPI?.send("RESET_THRESHOLD");
+      result.innerText = "Distance: -- cm";
+      bar.style.width = "0%";
+      waterFill.style.height = "0%";
+      tankLevelText.textContent = "0%";
+      tankStatus.textContent = "Tank Ready";
+      tankStatus.style.color = "#2f2f2f";
+      buzzerImg.classList.remove("buzzer-active");
+      buzzerStatus.textContent = "Ready to Alert!";
+      buzzerStatus.style.color = "#666";
+      showToast("🔄 Threshold reset to 30 cm");
+    });
+
+    // Receive data from serial
+    window.serialAPI?.onData((data) => {
+      if (data.type === "distance") {
+        const dist = data.value;
+        result.innerText = `Distance: ${dist} cm`;
+
+        // Update distance bar
+        let barWidth = Math.min(100, (dist / 100) * 100);
+        bar.style.width = `${barWidth}%`;
+
+        if (dist <= currentThreshold) {
+          bar.style.background = "linear-gradient(90deg, #ff6b6b, #d62828)";
+        } else if (dist <= currentThreshold + 20) {
+          bar.style.background = "linear-gradient(90deg, #ffd93d, #ffb700)";
+        } else {
+          bar.style.background = "linear-gradient(90deg, #38b000, #5ed73e)";
+        }
+
+        // Update water tank with actual sensor data
+        updateTank(dist);
+      }
+    });
+  </script>
+
+  <script src="../serial-handler.js"></script>
+  <script src="SerialManager.js"></script>
+  <script src="./backend/experimentControls.js"></script>
+  <script src="../backend/renderer.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class 6 - Light & Sound Monitoring System</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Base Styles */
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Custom Keyframes */
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+
+        /* Custom style for ping effect on sound waves */
+        .animate-ping {
+            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes ping {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Basic Icon Placeholder Styles (Replacing lucide-react) */
+        .icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            stroke-width: 2;
+        }
+        .icon-arrow-left::before { content: '←'; font-size: 24px; }
+        .icon-home::before { content: '🏠'; font-size: 24px; }
+        .icon-grid3x3::before { content: '🎛️'; font-size: 24px; }
+        .icon-lightbulb::before { content: '💡'; font-size: 24px; }
+        .icon-volume2::before { content: '🔊'; font-size: 24px; }
+        .icon-award::before { content: '🏆'; font-size: 24px; }
+        .icon-trending-up::before { content: '▲'; font-size: 16px; }
+        .icon-trending-down::before { content: '▼'; font-size: 16px; }
+        .icon-music::before { content: '🎶'; font-size: 20px; }
+        .icon-users::before { content: '🧑‍🤝‍🧑'; font-size: 20px; }
+    </style>
+</head>
+
+<body>
+    <div id="app-root" class="min-h-screen bg-gradient-to-b from-indigo-50 to-purple-100 p-4">
+        <audio id="voiceover-audio" src="light-sound-monitoring-voiceover.mp3"></audio>
+
+        <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-indigo-800">
+                        Class 6 - Light & Sound Monitoring System
+                    </h1>
+                    <p class="text-sm text-gray-600 mt-1">Control light and sound to create the perfect environment!</p>
+                </div>
+                <div class="flex gap-2">
+                    <button id="prev-btn"
+                        class="w-10 h-10 bg-yellow-400 hover:bg-yellow-500 rounded-full flex items-center justify-center transition-colors"
+                        title="Previous Page">
+                        <i class="icon icon-arrow-left w-5 h-5 text-white"></i>
+                    </button>
+                    <button id="home-btn"
+                        class="w-10 h-10 bg-green-400 hover:bg-green-500 rounded-full flex items-center justify-center transition-colors"
+                        title="Home">
+                        <i class="icon icon-home w-5 h-5 text-white"></i>
+                    </button>
+                    <button id="levels-btn"
+                        class="w-10 h-10 bg-purple-400 hover:bg-purple-500 rounded-full flex items-center justify-center transition-colors"
+                        title="Levels">
+                        <i class="icon icon-grid3x3 w-5 h-5 text-white"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 mb-4">
+            <div class="col-span-2 space-y-4">
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <div class="text-center mb-2">
+                        <h3 class="font-semibold text-sm text-gray-700">Veera Kit</h3>
+                        <p class="text-xs text-gray-500">LDR & Sound Sensors</p>
+                    </div>
+                    <div class="bg-indigo-100 rounded-lg p-4 border-2 border-indigo-300">
+                        <div class="flex justify-center gap-2">
+                            <i class="icon icon-lightbulb w-8 h-8 text-yellow-500 animate-pulse"></i>
+                            <i class="icon icon-volume2 w-8 h-8 text-blue-500 animate-pulse"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <div class="text-center">
+                        <i class="icon icon-award w-8 h-8 mx-auto mb-2 text-yellow-500"></i>
+                        <div id="score-display" class="text-2xl font-bold text-gray-800">100</div>
+                        <div class="text-xs text-gray-600">Score</div>
+                        <div class="text-xs text-gray-500 mt-2">⏱️ <span id="time-display">0:00</span></div>
+                        <div class="text-xs text-red-600 mt-1">⚠️ Violations: <span id="violations-display">0</span></div>
+                        <button id="reset-game-btn"
+                            class="mt-2 w-full bg-orange-400 hover:bg-orange-500 text-white text-xs font-semibold py-1 px-2 rounded transition-colors">
+                            Reset Game
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <button id="toggle-scene-btn"
+                        class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <i id="scene-icon" class="icon icon-users w-5 h-5"></i>
+                        <span id="scene-text">Classroom</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-span-7 bg-white rounded-lg shadow-md p-6 relative">
+                <div id="feedback-message" class="hidden absolute top-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-80 text-white px-6 py-3 rounded-full z-10 animate-pulse">
+                </div>
+
+                <div class="text-center mb-4">
+                    <h2 id="scene-header" class="text-2xl font-bold text-gray-800">
+                        📚 Smart Classroom
+                    </h2>
+                    <div class="flex justify-center gap-4 mt-2">
+                        <div id="light-status-box" class="px-4 py-2 rounded-full font-bold bg-blue-200 text-blue-800">
+                            💡 Good Lighting
+                        </div>
+                        <div id="sound-status-box" class="px-4 py-2 rounded-full font-bold bg-blue-200 text-blue-800">
+                            👂 Acceptable Noise
+                        </div>
+                    </div>
+                </div>
+
+                <div id="main-scene"
+                    class="relative rounded-xl p-8 min-h-96 transition-all duration-500 bg-gradient-to-b from-blue-100 to-green-100">
+                    
+                    <div id="classroom-scene" class="relative h-full">
+                        <div id="classroom-lights" class="absolute top-0 left-0 right-0 flex justify-around mb-4">
+                            </div>
+                        <div id="classroom-desks" class="grid grid-cols-4 gap-6 mt-20">
+                            </div>
+                        <div id="classroom-teacher" class="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                            </div>
+                        <div id="classroom-sound-waves" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                            </div>
+                    </div>
+                    
+                    <div id="concert-scene" class="relative h-full hidden">
+                        <div id="concert-lights" class="absolute top-0 left-0 right-0 flex justify-around">
+                            </div>
+                        <div id="concert-stage" class="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-full">
+                            </div>
+                        <div id="concert-audience" class="absolute bottom-4 left-0 right-0">
+                            </div>
+                        <div id="concert-sound-waves" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                            </div>
+                        <div id="concert-musical-notes" class="absolute inset-0 pointer-events-none">
+                            </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border-2 border-yellow-300">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-semibold text-gray-700 flex items-center gap-2">
+                                <i class="icon icon-lightbulb w-5 h-5 text-yellow-500"></i>
+                                Light Level
+                            </span>
+                            <span id="meter-light-level" class="font-bold text-lg">300 lux</span>
+                        </div>
+                        <div class="w-full bg-gray-300 rounded-full h-6 overflow-hidden">
+                            <div id="meter-light-bar" class="h-full transition-all duration-300 bg-blue-500"
+                                style="width: 30%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border-2 border-blue-300">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-semibold text-gray-700 flex items-center gap-2">
+                                <i class="icon icon-volume2 w-5 h-5 text-blue-500"></i>
+                                Sound Level
+                            </span>
+                            <span id="meter-sound-level" class="font-bold text-lg">45 dB</span>
+                        </div>
+                        <div class="w-full bg-gray-300 rounded-full h-6 overflow-hidden">
+                            <div id="meter-sound-bar" class="h-full transition-all duration-300 bg-blue-500"
+                                style="width: 37.5%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-3 space-y-4">
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <div class="text-center mb-2">
+                        <h3 class="font-semibold text-gray-700">Veera Guide</h3>
+                    </div>
+                    <img src="lion.gif" alt="Veera Avatar" class="w-full rounded-lg" />
+                    <div class="mt-3 bg-indigo-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-700 text-center">
+                            "Balance light and sound for the perfect environment!"
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg shadow-md p-4 border-2 border-yellow-300">
+                    <h3 class="font-semibold text-gray-700 mb-3 text-center flex items-center justify-center gap-2">
+                        <i class="icon icon-lightbulb w-5 h-5 text-yellow-600"></i>
+                        Light Control
+                    </h3>
+                    
+                    <div class="bg-white rounded-lg p-3 mb-3 text-center">
+                        <div id="light-level-display" class="text-3xl font-bold text-gray-800">
+                            300 lux
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <button id="adjust-light-down-btn"
+                            class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+                            <i class="icon icon-trending-down w-4 h-4"></i>
+                            -50
+                        </button>
+                        <button id="adjust-light-up-btn"
+                            class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+                            <i class="icon icon-trending-up w-4 h-4"></i>
+                            +50
+                        </button>
+                    </div>
+
+                    <div class="space-y-2">
+                        <input type="number" value="300" id="manual-light-input"
+                            class="w-full px-3 py-2 border-2 border-yellow-300 rounded-lg focus:border-yellow-500 focus:outline-none text-center font-bold"
+                            placeholder="Light level" />
+                        <button id="set-manual-light-btn"
+                            class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 rounded-lg transition-colors">
+                            Set Light
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg shadow-md p-4 border-2 border-blue-300">
+                    <h3 class="font-semibold text-gray-700 mb-3 text-center flex items-center justify-center gap-2">
+                        <i class="icon icon-volume2 w-5 h-5 text-blue-600"></i>
+                        Sound Control
+                    </h3>
+                    
+                    <div class="bg-white rounded-lg p-3 mb-3 text-center">
+                        <div id="sound-level-display" class="text-3xl font-bold text-gray-800">
+                            45 dB
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <button id="adjust-sound-down-btn"
+                            class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+                            <i class="icon icon-trending-down w-4 h-4"></i>
+                            -5
+                        </button>
+                        <button id="adjust-sound-up-btn"
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+                            <i class="icon icon-trending-up w-4 h-4"></i>
+                            +5
+                        </button>
+                    </div>
+
+                    <div class="space-y-2">
+                        <input type="number" value="45" id="manual-sound-input"
+                            class="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:outline-none text-center font-bold"
+                            placeholder="Sound level" />
+                        <button id="set-manual-sound-btn"
+                            class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg transition-colors">
+                            Set Sound
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h3 class="font-semibold text-gray-700 mb-3 text-center">
+                        Sensor Readings
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-lg p-3 border-2 border-yellow-300">
+                            <div class="flex items-center justify-between">
+                                <i class="icon icon-lightbulb w-6 h-6 text-yellow-600"></i>
+                                <div class="text-right">
+                                    <div id="sensor-light-display" class="text-xl font-bold text-gray-800">
+                                        300
+                                    </div>
+                                    <div class="text-xs text-gray-600">lux</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg p-3 border-2 border-blue-300">
+                            <div class="flex items-center justify-between">
+                                <i class="icon icon-volume2 w-6 h-6 text-blue-600"></i>
+                                <div class="text-right">
+                                    <div id="sensor-sound-display" class="text-xl font-bold text-gray-800">
+                                        45
+                                    </div>
+                                    <div class="text-xs text-gray-600">dB</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-500 text-center mt-2">
+                        From Veera Kit
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h3 class="font-semibold text-gray-700 mb-3 text-center">
+                        Threshold Settings
+                    </h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs text-gray-600 block mb-1 flex items-center gap-1">
+                                <i class="icon icon-lightbulb w-3 h-3"></i>
+                                Max Light Level (lux)
+                            </label>
+                            <input type="number" value="500" id="light-threshold-input"
+                                class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-yellow-500 focus:outline-none text-sm"
+                                placeholder="Light threshold" />
+                            <div class="text-center bg-yellow-100 rounded p-1 mt-1">
+                                <p class="text-xs text-gray-700">
+                                    Current: <span id="current-light-threshold-display" class="font-bold text-yellow-600">500</span>
+                                </p>
+                            </div>
+                            <button id="set-light-threshold-btn"
+                                class="w-full mt-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1.5 rounded-lg transition-colors text-sm">
+                                Set Light
+                            </button>
+                        </div>
+
+                        <div>
+                            <label class="text-xs text-gray-600 block mb-1 flex items-center gap-1">
+                                <i class="icon icon-volume2 w-3 h-3"></i>
+                                Max Sound Level (dB)
+                            </label>
+                            <input type="number" value="60" id="sound-threshold-input"
+                                class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm"
+                                placeholder="Sound threshold" />
+                            <div class="text-center bg-blue-100 rounded p-1 mt-1">
+                                <p class="text-xs text-gray-700">
+                                    Current: <span id="current-sound-threshold-display" class="font-bold text-blue-600">60</span>
+                                </p>
+                            </div>
+                            <button id="set-sound-threshold-btn"
+                                class="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1.5 rounded-lg transition-colors text-sm">
+                                Set Sound
+                            </button>
+                        </div>
+
+                        <button id="reset-thresholds-btn"
+                            class="w-full bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 rounded-lg transition-colors">
+                            Reset All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button id="next-experiment-btn" onclick="continuePage()"
+                class="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all transform hover:scale-105">
+                Next Experiment →
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE VARIABLES (Window Scope) ---
+        window.lightLevel = 300;
+        window.soundLevel = 45;
+        window.sensorLight = 300;
+        window.sensorSound = 45;
+        window.lightThreshold = 500;
+        window.soundThreshold = 60;
+        window.lightThresholdInput = '500';
+        window.soundThresholdInput = '60';
+        window.manualLight = '300';
+        window.manualSound = '45';
+        window.isManualControl = false;
+        window.score = 100;
+        window.timeElapsed = 0;
+        window.gameStarted = false;
+        window.violations = 0;
+        window.showFeedback = '';
+        window.scene = 'classroom'; // 'classroom' or 'concert'
+
+        let sensorIntervalId = null;
+        let timerIntervalId = null;
+        let feedbackTimeoutId = null;
+
+        // --- DOM ELEMENTS (Cached) ---
+        const audioEl = document.getElementById('voiceover-audio');
+        const scoreDisplayEl = document.getElementById('score-display');
+        const timeDisplayEl = document.getElementById('time-display');
+        const violationsDisplayEl = document.getElementById('violations-display');
+        const feedbackMessageEl = document.getElementById('feedback-message');
+        const sceneHeaderEl = document.getElementById('scene-header');
+        const lightStatusBoxEl = document.getElementById('light-status-box');
+        const soundStatusBoxEl = document.getElementById('sound-status-box');
+        const mainSceneEl = document.getElementById('main-scene');
+        const meterLightLevelEl = document.getElementById('meter-light-level');
+        const meterSoundLevelEl = document.getElementById('meter-sound-level');
+        const meterLightBarEl = document.getElementById('meter-light-bar');
+        const meterSoundBarEl = document.getElementById('meter-sound-bar');
+        const lightLevelDisplayEl = document.getElementById('light-level-display');
+        const soundLevelDisplayEl = document.getElementById('sound-level-display');
+        const sensorLightDisplayEl = document.getElementById('sensor-light-display');
+        const sensorSoundDisplayEl = document.getElementById('sensor-sound-display');
+        const lightThresholdInputEl = document.getElementById('light-threshold-input');
+        const soundThresholdInputEl = document.getElementById('sound-threshold-input');
+        const manualLightInputEl = document.getElementById('manual-light-input');
+        const manualSoundInputEl = document.getElementById('manual-sound-input');
+        const currentLightThresholdDisplayEl = document.getElementById('current-light-threshold-display');
+        const currentSoundThresholdDisplayEl = document.getElementById('current-sound-threshold-display');
+        const toggleSceneBtn = document.getElementById('toggle-scene-btn');
+        const sceneIconEl = document.getElementById('scene-icon');
+        const sceneTextEl = document.getElementById('scene-text');
+        const classroomSceneEl = document.getElementById('classroom-scene');
+        const concertSceneEl = document.getElementById('concert-scene');
+        const classroomLightsEl = document.getElementById('classroom-lights');
+        const classroomDesksEl = document.getElementById('classroom-desks');
+        const classroomTeacherEl = document.getElementById('classroom-teacher');
+        const classroomSoundWavesEl = document.getElementById('classroom-sound-waves');
+        const concertLightsEl = document.getElementById('concert-lights');
+        const concertStageEl = document.getElementById('concert-stage');
+        const concertAudienceEl = document.getElementById('concert-audience');
+        const concertSoundWavesEl = document.getElementById('concert-sound-waves');
+        const concertMusicalNotesEl = document.getElementById('concert-musical-notes');
+        
+        // Buttons
+        const resetGameBtn = document.getElementById('reset-game-btn');
+        const setLightThresholdBtn = document.getElementById('set-light-threshold-btn');
+        const setSoundThresholdBtn = document.getElementById('set-sound-threshold-btn');
+        const resetThresholdsBtn = document.getElementById('reset-thresholds-btn');
+        const adjustLightDownBtn = document.getElementById('adjust-light-down-btn');
+        const adjustLightUpBtn = document.getElementById('adjust-light-up-btn');
+        const setManualLightBtn = document.getElementById('set-manual-light-btn');
+        const adjustSoundDownBtn = document.getElementById('adjust-sound-down-btn');
+        const adjustSoundUpBtn = document.getElementById('adjust-sound-up-btn');
+        const setManualSoundBtn = document.getElementById('set-manual-sound-btn');
+        
+        // --- UTILITY FUNCTIONS ---
+        const formatTime = (seconds) => {
+            const min = Math.floor(seconds / 60);
+            const sec = (seconds % 60).toString().padStart(2, '0');
+            return `${min}:${sec}`;
+        };
+
+        const showTemporaryFeedback = (message) => {
+            clearTimeout(feedbackTimeoutId);
+            feedbackMessageEl.textContent = message;
+            feedbackMessageEl.classList.remove('hidden');
+            feedbackTimeoutId = setTimeout(() => {
+                feedbackMessageEl.classList.add('hidden');
+            }, 2000);
+        };
+        
+        const getLightStatus = () => {
+            if (window.scene === 'classroom') {
+                if (window.lightLevel < 300) return { status: 'danger', message: '🌑 Too Dark for Reading!', color: 'red' };
+                if (window.lightLevel > window.lightThreshold) return { status: 'warning', message: '☀️ Too Bright!', color: 'yellow' };
+                if (window.lightLevel >= 400 && window.lightLevel <= 600) return { status: 'excellent', message: '✨ Perfect Lighting!', color: 'green' };
+                return { status: 'good', message: '💡 Good Lighting', color: 'blue' };
+            } else { // Concert scene
+                if (window.lightLevel < 100) return { status: 'danger', message: '🌑 Too Dark!', color: 'red' };
+                if (window.lightLevel > 800) return { status: 'warning', message: '☀️ Too Bright!', color: 'yellow' };
+                if (window.lightLevel >= 200 && window.lightLevel <= 500) return { status: 'excellent', message: '🎭 Perfect Stage Lighting!', color: 'green' };
+                return { status: 'good', message: '💡 Good Ambiance', color: 'blue' };
+            }
+        };
+
+        const getSoundStatus = () => {
+            if (window.soundLevel > window.soundThreshold) return { status: 'danger', message: '🔊 Too Noisy!', color: 'red' };
+            if (window.soundLevel > window.soundThreshold - 10) return { status: 'warning', message: '📢 Getting Loud!', color: 'yellow' };
+            if (window.scene === 'classroom' && window.soundLevel < 40) return { status: 'excellent', message: '🤫 Quiet Environment', color: 'green' };
+            if (window.scene === 'concert' && window.soundLevel > 50 && window.soundLevel < window.soundThreshold) return { status: 'good', message: '🎵 Good Music Level', color: 'blue' };
+            return { status: 'good', message: '👂 Acceptable Noise', color: 'blue' };
+        };
+
+        const renderClassroomScene = (lightStatus, soundStatus) => {
+            const visiblePeople = Math.floor((window.lightLevel / 1000) * 8);
+
+            // 1. Lights
+            classroomLightsEl.innerHTML = `
+                ${[1, 2, 3, 4].map((i) => `
+                    <div class="text-center">
+                        <i class="icon icon-lightbulb w-12 h-12 ${
+                            window.lightLevel > 300 ? 'text-yellow-400' : 'text-gray-400'
+                        }"
+                        style="filter: ${window.lightLevel > 300 ? `drop-shadow(0 0 ${window.lightLevel / 20}px yellow)` : 'none'}"></i>
+                    </div>
+                `).join('')}
+            `;
+
+            // 2. Desks/Students
+            classroomDesksEl.innerHTML = `
+                ${[1, 2, 3, 4, 5, 6, 7, 8].map((i) => `
+                    <div class="text-center">
+                        <div class="w-20 h-16 rounded-lg border-4 border-amber-400 mb-2 transition-all ${
+                            i <= visiblePeople ? 'bg-amber-700 opacity-100' : 'bg-gray-600 opacity-30'
+                        }">
+                            ${i <= visiblePeople ? `
+                                <div class="w-12 h-10 bg-blue-400 mx-auto mt-2 rounded border-2 border-blue-600"></div>
+                            ` : ''}
+                        </div>
+                        <div class="text-4xl transition-opacity ${
+                            i <= visiblePeople ? 'opacity-100' : 'opacity-20'
+                        }">
+                            ${i % 3 === 0 ? '👧' : i % 3 === 1 ? '👦' : '🧒'}
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+
+            // 3. Teacher/Blackboard
+            classroomTeacherEl.innerHTML = `
+                <div class="text-center">
+                    <div class="text-6xl ${window.lightLevel > 300 ? 'opacity-100' : 'opacity-30'}">
+                        👨‍🏫
+                    </div>
+                    <div class="mt-2 w-48 h-32 bg-gray-700 rounded-lg border-4 border-gray-800 flex items-center justify-center ${
+                        window.lightLevel > 300 ? 'opacity-100' : 'opacity-30'
+                    }">
+                        <span class="text-white text-sm">Blackboard</span>
+                    </div>
+                </div>
+            `;
+
+            // 4. Sound Waves
+            classroomSoundWavesEl.innerHTML = `
+                ${window.soundLevel > 40 ? [1, 2, 3].map((i) => `
+                    <div
+                        class="absolute border-4 border-blue-400 rounded-full animate-ping"
+                        style="
+                            width: ${window.soundLevel * 2}px;
+                            height: ${window.soundLevel * 2}px;
+                            animation-delay: ${i * 0.3}s;
+                            opacity: ${window.soundLevel > window.soundThreshold ? 0.6 : 0.3};
+                            top: 50%; left: 50%; transform: translate(-50%, -50%);
+                        "
+                    ></div>
+                `).join('') : ''}
+            `;
+        };
+
+        const renderConcertScene = (lightStatus, soundStatus) => {
+            const visiblePeople = Math.floor((window.lightLevel / 1000) * 8);
+            
+            // 1. Lights
+            concertLightsEl.innerHTML = `
+                ${[1, 2, 3, 4, 5, 6].map((i) => `
+                    <div>
+                        <div 
+                            class="w-8 h-8 rounded-full ${
+                                window.lightLevel > 200 ? 'bg-yellow-400' : 'bg-gray-600'
+                            }"
+                            style="box-shadow: ${window.lightLevel > 200 ? `0 0 ${window.lightLevel / 10}px rgba(255, 255, 0, 0.8)` : 'none'}">
+                        </div>
+                        <div 
+                            class="w-1 h-32 mx-auto ${window.lightLevel > 200 ? 'bg-yellow-300' : 'bg-gray-500'}"
+                            style="opacity: ${window.lightLevel / 1000}">
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+
+            // 2. Stage/Performers
+            concertStageEl.innerHTML = `
+                <div class="w-3/4 mx-auto h-24 rounded-t-lg border-4 border-amber-600 transition-all ${
+                    window.lightLevel > 200 ? 'bg-amber-800' : 'bg-gray-800'
+                }">
+                    <div class="flex justify-center items-end h-full gap-8 pb-4">
+                        ${[1, 2, 3, 4, 5].map((i) => `
+                            <div 
+                                class="text-5xl transition-all"
+                                style="
+                                    transform: ${window.soundLevel > 60 ? `scale(${1 + (window.soundLevel - 60) / 200})` : 'scale(1)'};
+                                    opacity: ${window.lightLevel > 150 ? '100%' : '20%'};
+                                    transition: transform 0.3s;
+                                "
+                            >
+                                ${i === 3 ? '🎤' : i % 2 === 0 ? '🎸' : '🎹'}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            // 3. Audience
+            concertAudienceEl.innerHTML = `
+                <div class="grid grid-cols-10 gap-2 px-8">
+                    ${Array.from({ length: 30 }).map((_, i) => `
+                        <div 
+                            class="text-2xl text-center transition-all"
+                            style="
+                                opacity: ${i < visiblePeople * 3 ? '100%' : '20%'};
+                                transform: ${window.soundLevel > 70 ? `translateY(-${(window.soundLevel - 70) / 5}px)` : 'none'};
+                                transition: transform 0.3s;
+                            "
+                        >
+                            ${i % 3 === 0 ? '👨' : i % 3 === 1 ? '👩' : '🧑'}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            // 4. Sound Waves
+            concertSoundWavesEl.innerHTML = `
+                ${window.soundLevel > 50 ? [1, 2, 3, 4].map((i) => `
+                    <div
+                        class="absolute border-4 rounded-full animate-ping"
+                        style="
+                            border-color: rgba(${255 - window.soundLevel * 2}, ${window.soundLevel * 2}, 255, 0.5);
+                            width: ${window.soundLevel * 3}px;
+                            height: ${window.soundLevel * 3}px;
+                            animation-delay: ${i * 0.2}s;
+                            top: 50%; left: 50%; transform: translate(-50%, -50%);
+                        "
+                    ></div>
+                `).join('') : ''}
+            `;
+            
+            // 5. Musical Notes
+            concertMusicalNotesEl.innerHTML = `
+                ${window.soundLevel > 60 ? [1, 2, 3, 4, 5].map((i) => `
+                    <div
+                        class="absolute text-4xl animate-bounce"
+                        style="
+                            left: ${i * 20}%;
+                            top: ${20 + i * 10}%;
+                            animation-delay: ${i * 0.3}s;
+                            opacity: 0.6;
+                        "
+                    >
+                        🎵
+                    </div>
+                `).join('') : ''}
+            `;
+        };
+
+        const checkViolationsAndScore = () => {
+            if (!window.gameStarted) return;
+            
+            const lightStatus = getLightStatus();
+            const soundStatus = getSoundStatus();
+            
+            const isLightViolation = lightStatus.status === 'danger' || lightStatus.status === 'warning';
+            const isSoundViolation = soundStatus.status === 'danger' || soundStatus.status === 'warning';
+
+            if (isLightViolation || isSoundViolation) {
+                if (Math.random() > 0.8) { // Don't deduct every frame
+                    window.violations++;
+                    window.score = Math.max(0, window.score - 5);
+                    
+                    if (isLightViolation && isSoundViolation) {
+                        showTemporaryFeedback('⚠️ Light & Sound violations!');
+                    } else if (isLightViolation) {
+                        showTemporaryFeedback('💡 Light level issue!');
+                    } else {
+                        showTemporaryFeedback('🔊 Too noisy!');
+                    }
+                }
+            } else {
+                // Small bonus for maintaining good conditions
+                if (Math.random() > 0.95) {
+                    window.score = Math.min(200, window.score + 2);
+                }
+            }
+        };
+
+        // --- MAIN UPDATE FUNCTION ---
+        const updateUI = () => {
+            const lightStatus = getLightStatus();
+            const soundStatus = getSoundStatus();
+            
+            // --- 1. Global Updates ---
+            scoreDisplayEl.textContent = window.score;
+            timeDisplayEl.textContent = formatTime(window.timeElapsed);
+            violationsDisplayEl.textContent = window.violations;
+            
+            // Scene Toggle Button
+            sceneIconEl.className = `icon w-5 h-5 ${window.scene === 'classroom' ? 'icon-users' : 'icon-music'}`;
+            sceneTextEl.textContent = window.scene === 'classroom' ? 'Classroom' : 'Concert';
+
+            // --- 2. Control/Input Updates ---
+            lightLevelDisplayEl.textContent = `${window.lightLevel.toFixed(0)} lux`;
+            soundLevelDisplayEl.textContent = `${window.soundLevel.toFixed(0)} dB`;
+            sensorLightDisplayEl.textContent = window.sensorLight.toFixed(0);
+            sensorSoundDisplayEl.textContent = window.sensorSound.toFixed(0);
+            currentLightThresholdDisplayEl.textContent = window.lightThreshold;
+            currentSoundThresholdDisplayEl.textContent = window.soundThreshold;
+            lightThresholdInputEl.value = window.lightThresholdInput;
+            soundThresholdInputEl.value = window.soundThresholdInput;
+            manualLightInputEl.value = window.manualLight;
+            manualSoundInputEl.value = window.manualSound;
+
+            // --- 3. Scene & Status Updates ---
+            
+            // Scene Visibility
+            classroomSceneEl.classList.toggle('hidden', window.scene !== 'classroom');
+            concertSceneEl.classList.toggle('hidden', window.scene !== 'concert');
+            
+            // Scene Header
+            sceneHeaderEl.textContent = window.scene === 'classroom' ? '📚 Smart Classroom' : '🎵 Concert Hall';
+            
+            // Scene Background Color
+            mainSceneEl.style.backgroundColor = window.scene === 'classroom' 
+              ? `rgba(219, 234, 254, ${Math.min(window.lightLevel / 800, 1)})` 
+              : `rgba(88, 28, 135, ${Math.max(0.3, Math.min(window.lightLevel / 600, 1))})`;
+
+            // Scene Specific Renders
+            if (window.scene === 'classroom') {
+                renderClassroomScene(lightStatus, soundStatus);
+            } else {
+                renderConcertScene(lightStatus, soundStatus);
+            }
+
+            // Light Status Box
+            lightStatusBoxEl.className = `px-4 py-2 rounded-full font-bold bg-${lightStatus.color}-200 text-${lightStatus.color}-800`;
+            lightStatusBoxEl.textContent = lightStatus.message;
+
+            // Sound Status Box
+            soundStatusBoxEl.className = `px-4 py-2 rounded-full font-bold bg-${soundStatus.color}-200 text-${soundStatus.color}-800`;
+            soundStatusBoxEl.textContent = soundStatus.message;
+            
+            // Meter Bars
+            const lightColor = lightStatus.color === 'excellent' ? 'green' : lightStatus.color === 'good' ? 'blue' : lightStatus.color;
+            const soundColor = soundStatus.color === 'excellent' ? 'green' : soundStatus.color === 'good' ? 'blue' : soundStatus.color;
+
+            meterLightBarEl.style.width = `${(window.lightLevel / 1000) * 100}%`;
+            meterLightBarEl.className = `h-full transition-all duration-300 bg-${lightColor}-500`;
+            meterLightLevelEl.textContent = `${window.lightLevel.toFixed(0)} lux`;
+
+            meterSoundBarEl.style.width = `${(window.soundLevel / 120) * 100}%`;
+            meterSoundBarEl.className = `h-full transition-all duration-300 bg-${soundColor}-500`;
+            meterSoundLevelEl.textContent = `${window.soundLevel.toFixed(0)} dB`;
+        };
+
+        // --- HANDLERS ---
+        const handleSetLightThreshold = () => {
+            const value = parseFloat(lightThresholdInputEl.value);
+            if (!isNaN(value) && value >= 0 && value <= 1000) {
+                window.lightThreshold = value;
+                window.lightThresholdInput = value.toString();
+                showTemporaryFeedback('✅ Light threshold updated!');
+            } else {
+                alert('Please enter a valid light level between 0 and 1000 lux');
+            }
+            updateUI();
+        };
+
+        const handleSetSoundThreshold = () => {
+            const value = parseFloat(soundThresholdInputEl.value);
+            if (!isNaN(value) && value >= 0 && value <= 120) {
+                window.soundThreshold = value;
+                window.soundThresholdInput = value.toString();
+                showTemporaryFeedback('✅ Sound threshold updated!');
+            } else {
+                alert('Please enter a valid sound level between 0 and 120 dB');
+            }
+            updateUI();
+        };
+
+        const handleResetThresholds = () => {
+            window.lightThreshold = 500;
+            window.soundThreshold = 60;
+            window.lightThresholdInput = '500';
+            window.soundThresholdInput = '60';
+            showTemporaryFeedback('🔄 Thresholds reset!');
+            updateUI();
+        };
+        
+        const adjustLight = (delta) => {
+            const newLight = Math.max(0, Math.min(1000, window.lightLevel + delta));
+            window.lightLevel = newLight;
+            window.manualLight = newLight.toString();
+            window.isManualControl = true;
+            if (!window.gameStarted) startGame();
+            updateUI();
+        };
+
+        const adjustSound = (delta) => {
+            const newSound = Math.max(0, Math.min(120, window.soundLevel + delta));
+            window.soundLevel = newSound;
+            window.manualSound = newSound.toString();
+            window.isManualControl = true;
+            if (!window.gameStarted) startGame();
+            updateUI();
+        };
+
+        const handleManualLightChange = () => {
+            const value = parseFloat(manualLightInputEl.value);
+            if (!isNaN(value) && value >= 0 && value <= 1000) {
+                window.lightLevel = value;
+                window.isManualControl = true;
+                if (!window.gameStarted) startGame();
+            } else {
+                alert('Please enter a valid light level between 0 and 1000 lux');
+            }
+            updateUI();
+        };
+
+        const handleManualSoundChange = () => {
+            const value = parseFloat(manualSoundInputEl.value);
+            if (!isNaN(value) && value >= 0 && value <= 120) {
+                window.soundLevel = value;
+                window.isManualControl = true;
+                if (!window.gameStarted) startGame();
+            } else {
+                alert('Please enter a valid sound level between 0 and 120 dB');
+            }
+            updateUI();
+        };
+        
+        const resetGame = () => {
+            window.score = 100;
+            window.timeElapsed = 0;
+            window.violations = 0;
+            window.gameStarted = false;
+            window.lightLevel = 300;
+            window.soundLevel = 45;
+            window.manualLight = '300';
+            window.manualSound = '45';
+            window.isManualControl = false;
+            
+            clearInterval(sensorIntervalId);
+            clearInterval(timerIntervalId);
+            startSensorSimulation();
+            
+            showTemporaryFeedback('🎮 Game Reset!');
+            updateUI();
+        };
+
+        const toggleScene = () => {
+            window.scene = window.scene === 'classroom' ? 'concert' : 'classroom';
+            showTemporaryFeedback(window.scene === 'classroom' ? '📚 Classroom Mode!' : '🎵 Concert Mode!');
+            updateUI();
+        };
+        
+        const startGame = () => {
+            window.gameStarted = true;
+            startTimer();
+        }
+
+        // --- SIMULATION/EFFECTS ---
+        const startSensorSimulation = () => {
+            clearInterval(sensorIntervalId);
+            sensorIntervalId = setInterval(() => {
+                if (!window.isManualControl) {
+                    window.sensorLight = Math.max(0, Math.min(1000, window.sensorLight + (Math.random() - 0.5) * 50));
+                    window.sensorSound = Math.max(0, Math.min(120, window.sensorSound + (Math.random() - 0.5) * 10));
+                    window.lightLevel = window.sensorLight;
+                    window.soundLevel = window.sensorSound;
+                }
+                
+                checkViolationsAndScore();
+                updateUI();
+            }, 2000);
+        };
+
+        const startTimer = () => {
+            clearInterval(timerIntervalId);
+            timerIntervalId = setInterval(() => {
+                if (window.gameStarted) {
+                    window.timeElapsed++;
+                    updateUI();
+                } else {
+                    clearInterval(timerIntervalId);
+                }
+            }, 1000);
+        };
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Initial Voiceover Play
+            if (audioEl) {
+                audioEl.play().catch(err => console.log('Audio play failed:', err));
+            }
+
+            // 2. Start Sensor Simulation
+            startSensorSimulation();
+
+            // 3. Attach Event Listeners
+            resetGameBtn.addEventListener('click', resetGame);
+            toggleSceneBtn.addEventListener('click', toggleScene);
+            setLightThresholdBtn.addEventListener('click', handleSetLightThreshold);
+            setSoundThresholdBtn.addEventListener('click', handleSetSoundThreshold);
+            resetThresholdsBtn.addEventListener('click', handleResetThresholds);
+            adjustLightDownBtn.addEventListener('click', () => adjustLight(-50));
+            adjustLightUpBtn.addEventListener('click', () => adjustLight(50));
+            setManualLightBtn.addEventListener('click', handleManualLightChange);
+            adjustSoundDownBtn.addEventListener('click', () => adjustSound(-5));
+            adjustSoundUpBtn.addEventListener('click', () => adjustSound(5));
+            setManualSoundBtn.addEventListener('click', handleManualSoundChange);
+
+            // Input field syncing (no need for complex change handlers, input listener is enough for manual control button)
+            lightThresholdInputEl.addEventListener('input', (e) => { window.lightThresholdInput = e.target.value; });
+            soundThresholdInputEl.addEventListener('input', (e) => { window.soundThresholdInput = e.target.value; });
+            manualLightInputEl.addEventListener('input', (e) => { window.manualLight = e.target.value; });
+            manualSoundInputEl.addEventListener('input', (e) => { window.manualSound = e.target.value; });
+
+            // Navigation Placeholders
+            document.getElementById('prev-btn').addEventListener('click', () => window.history.back());
+            document.getElementById('home-btn').addEventListener('click', () => console.log('Navigate to home'));
+            document.getElementById('levels-btn').addEventListener('click', () => console.log('Navigate to levels'));
+            document.getElementById('next-experiment-btn').addEventListener('click', () => console.log('Navigate to next experiment'));
+
+            // Start the game immediately on load (as implied by score/time tracking)
+            startGame();
+            
+            // 4. Initial Render
+            updateUI();
+        });
+    </script>
+</body>
+
+</html>

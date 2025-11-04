@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Storage Monitoring</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      background: linear-gradient(to bottom, #8bc34a, #dcedc8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+
+    /* Clip arts */
+    .clip-top {
+      position: absolute;
+      top: 10px;
+      left: 100px;
+      width: 140px;
+      opacity: 0.9;
+    }
+
+    .clip-bottom {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 150px;
+      opacity: 0.9;
+    }
+
+    /* ✅ Top-right icons */
+    .top-icons {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      display: flex;
+      gap: 15px;
+      justify-content: flex-end;
+    }
+
+    .top-icons img {
+      width: 55px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .top-icons img:hover {
+      transform: scale(1.1);
+    }
+
+    /* Title */
+    h1 {
+      margin-top: 70px;
+      background: rgba(255,255,255,0.3);
+      padding: 12px 35px;
+      border-radius: 12px;
+      font-size: 2rem;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    /* Content section */
+    .content {
+      margin-top: 40px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .board {
+      width: 420px;
+      height: auto;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    /* Veera avatar */
+    .lion {
+      width: 280px;
+      height: 280px;
+      margin-top: 40px;
+      object-fit: contain;
+    }
+
+    /* Speech bubble with scrollable area */
+    .speech {
+      background: #00cfff;
+      color: #000;
+      padding: 20px;
+      border-radius: 20px;
+      font-size: 1.2rem;
+      max-width: 400px;
+      max-height: 250px;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .speech::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .speech::-webkit-scrollbar-thumb {
+      background: #007ba7;
+      border-radius: 6px;
+    }
+
+    .speech::after {
+      content: "";
+      position: absolute;
+      right: -20px;
+      bottom: 30px;
+      border-width: 12px;
+      border-style: solid;
+      border-color: transparent transparent transparent #00cfff;
+    }
+
+    /* Typewriter animation */
+    #typeText {
+      white-space: pre-line;
+    }
+
+    /* Continue Button */
+    .continue-btn {
+      margin-top: 30px;
+      background: #fff;
+      color: #000;
+      font-weight: bold;
+      font-size: 1.3rem;
+      padding: 14px 40px;
+      border-radius: 12px;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease;
+    }
+
+    .continue-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .continue-btn img {
+      width: 30px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top-left clip -->
+  <img src="../../assets/images/clip-top.png" alt="Top Clip" class="clip-top">
+
+  <!-- ✅ Top-right icons -->
+  <div class="top-icons">
+    <img src="../../assets/icons/home.png" alt="Home" onclick="goHome()">
+    <img src="../../assets/icons/achievements.png" alt="Achievements" onclick="goAchievements()">
+    <img src="../../assets/icons/logout.png" alt="Back" onclick="goBack()">
+  </div>
+
+  <!-- Title -->
+  <h1>FOOD STORAGE MONITORING</h1>
+
+  <!-- Content -->
+  <div class="content">
+    <img src="../../assets/images/board.png" alt="Board" class="board">
+    <div>
+      <div class="speech">
+        <span id="typeText"></span>
+      </div>
+      <img src="../../assets/images/lion.gif" alt="Lion" class="lion" id="lion">
+    </div>
+  </div>
+
+  <!-- Continue Button -->
+  <button class="continue-btn" onclick="window.location.href='C5E3P1.html'">
+    CONTINUE <img src="../../assets/icons/arrow.png" alt="Arrow">
+  </button>
+
+  <!-- Bottom-right clip -->
+  <img src="../../assets/images/clip-bottom.png" alt="Bottom Clip" class="clip-bottom">
+
+  <!-- Audio -->
+  <audio id="voice" autoplay>
+    <source src="../../assets/voice/VOICE OVER PAGE 10.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const audio = document.getElementById("voice");
+    const lion = document.getElementById("lion");
+    const textEl = document.getElementById("typeText");
+
+    const message = `Brrr! It’s cold in here!
+We’re inside a refrigerator — the home of all yummy food.
+But did you know food can spoil if the fridge gets too warm?
+In this experiment, your Veera Kit uses a temperature sensor to check if food is safe.
+When the temperature goes too high, you’ll see stale food on screen.
+Keep it cool, and your fridge will stay fresh! 🧊
+Let’s protect our snacks from spoiling!`;
+
+    // ✅ Typewriter animation
+    let i = 0;
+    function typeWriter() {
+      if (i < message.length) {
+        textEl.textContent += message.charAt(i);
+        i++;
+        setTimeout(typeWriter, 30);
+      }
+    }
+    typeWriter();
+
+    // ✅ Audio autoplay fix
+    audio.play().then(() => {
+      lion.src = "../../assets/images/lion.gif";
+    }).catch(() => {
+      document.body.addEventListener("click", () => {
+        audio.play();
+      }, { once: true });
+    });
+
+    // ✅ Navigation
+    function goHome() { window.location.href = "../welcome.html"; }
+    function goAchievements() { window.location.href = "../page4.html"; }
+    function goBack() { window.history.back(); }
+
+    // ✅ Serial communication (retained)
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.serialAPI && window.serialAPI.send) {
+        window.serialAPI.send("SET_EXPERIMENT_3");
+      }
+
+      if (window.serialAPI && window.serialAPI.onData) {
+        window.serialAPI.onData((data) => {
+          if (data.type === "navigate" && data.target) {
+            console.log("🔀 Navigating to:", data.target);
+            window.location.href = data.target;
+          }
+        });
+      }
+    });
+
+    function goNext() {
+      window.location.href = "C5E3P1.html";
+    }
+  </script>
+
+  <!-- ✅ Original backend scripts (kept intact) -->
+  <script src="../backend/renderer.js"></script>
+  <script src="serialmanager.js"></script>
+  <script src="./backend/experimentControls.js"></script>
+</body>
+</html>

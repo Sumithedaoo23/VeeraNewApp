@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7. Plant Soil Monitoring</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #e26c17 0%, #dcedc8 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+
+    /* Clip arts */
+    .clip-top {
+      position: absolute;
+      top: 70px;
+      left: 20px;
+      width: 140px;
+      opacity: 0.85;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      z-index: 5;
+      animation: float-clip 4s ease-in-out infinite;
+    }
+
+    .clip-bottom {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 150px;
+      opacity: 0.85;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      z-index: 5;
+      animation: float-clip 5s ease-in-out infinite;
+    }
+
+    .lion-gif {
+      position: absolute;
+      top: 50%;
+      right: 50px;
+      transform: translateY(-50%);
+      width: 180px;
+      opacity: 0.9;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+      z-index: 5;
+      animation: lion-bounce 3s ease-in-out infinite;
+    }
+
+    @keyframes float-clip {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes lion-bounce {
+      0%, 100% { transform: translateY(-50%) scale(1); }
+      50% { transform: translateY(-50%) scale(1.05); }
+    }
+
+    /* Animated background particles */
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      animation: float 15s infinite ease-in-out;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+    }
+
+    /* Top Navigation */
+    .top-nav {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      display: flex;
+      gap: 12px;
+      z-index: 20;
+    }
+
+    .nav-btn {
+      width: 42px;
+      height: 42px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 50%;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .nav-btn:hover {
+      transform: scale(1.15) rotate(5deg);
+      background: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Title */
+    h1 {
+      margin-top: 60px;
+      background: rgba(255, 255, 255, 0.3);
+      padding: 15px 40px;
+      border-radius: 20px;
+      font-size: 2rem;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(15px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      animation: slideDown 0.6s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Content */
+    .content {
+      margin-top: 50px;
+      display: flex;
+      align-items: center;
+      gap: 60px;
+      flex-wrap: wrap;
+      justify-content: center;
+      z-index: 10;
+      animation: fadeIn 0.8s ease-out 0.3s backwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .sensor-board {
+      width: 420px;
+      position: relative;
+      transition: transform 0.3s ease;
+    }
+
+    .sensor-board:hover {
+      transform: translateY(-5px);
+    }
+
+    .board-img {
+      width: 100%;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    }
+
+    .sensor-visual {
+      display: none;
+    }
+
+    .sensor-probe {
+      position: absolute;
+      bottom: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 8px;
+      height: 40%;
+      background: linear-gradient(180deg, #555, #333);
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      animation: sensorPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes sensorPulse {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.05); }
+    }
+
+    .water-level {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(100, 149, 237, 0.4);
+      transition: height 1s ease;
+      border-radius: 0 0 15px 15px;
+    }
+
+    .soil-particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .soil-particle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: rgba(101, 67, 33, 0.6);
+      border-radius: 50%;
+    }
+
+    .content-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 25px;
+    }
+
+    /* Speech bubble */
+    .speech {
+      background: linear-gradient(135deg, #00cfff 0%, #0099cc 100%);
+      color: #000;
+      padding: 25px 30px;
+      border-radius: 25px;
+      font-size: 1.05rem;
+      max-width: 450px;
+      position: relative;
+      min-height: 120px;
+      text-align: center;
+      font-weight: 500;
+      box-shadow: 0 8px 25px rgba(0, 153, 204, 0.4);
+      border: 3px solid rgba(255, 255, 255, 0.4);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .speech::before {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 20px solid #0099cc;
+    }
+
+    /* Plant container */
+    .plant-container {
+      position: relative;
+      width: 250px;
+      height: 300px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .pot {
+      position: absolute;
+      bottom: 0;
+      width: 180px;
+      height: 140px;
+      background: linear-gradient(180deg, #d2691e, #8b4513);
+      border-radius: 0 0 50% 50%;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      z-index: 2;
+    }
+
+    .pot::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 160px;
+      height: 30px;
+      background: #8b4513;
+      border-radius: 50%;
+    }
+
+    .soil {
+      position: absolute;
+      bottom: 40px;
+      width: 160px;
+      height: 60px;
+      background: #654321;
+      border-radius: 50% 50% 0 0;
+      z-index: 3;
+      transition: background 0.5s ease;
+    }
+
+    .plant {
+      position: absolute;
+      bottom: 90px;
+      width: 150px;
+      height: 180px;
+      z-index: 4;
+      transition: all 0.8s ease;
+      transform-origin: bottom center;
+    }
+
+    /* Plant states */
+    .plant-dry {
+      filter: grayscale(0.7) brightness(0.8);
+      transform: scale(0.85) rotate(-5deg);
+    }
+
+    .plant-moderate {
+      filter: grayscale(0.3) brightness(0.95);
+      transform: scale(0.95) rotate(0deg);
+    }
+
+    .plant-healthy {
+      filter: grayscale(0) brightness(1.1);
+      transform: scale(1) rotate(0deg);
+      animation: plantBounce 2s ease-in-out infinite;
+    }
+
+    @keyframes plantBounce {
+      0%, 100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.02) translateY(-5px); }
+    }
+
+    /* Plant SVG */
+    .plant svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    }
+
+    /* Moisture bar */
+    .moisture-container {
+      width: 320px;
+      background: rgba(255, 255, 255, 0.3);
+      padding: 20px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .moisture-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      color: #fff;
+      font-weight: bold;
+      font-size: 1rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .moisture-bar {
+      width: 100%;
+      height: 25px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.5);
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .moisture-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 12px;
+      transition: width 1s ease, background 0.5s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .moisture-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      to { left: 100%; }
+    }
+
+    .status-text {
+      margin-top: 12px;
+      text-align: center;
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.1rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    /* Continue Button */
+    .continue-btn {
+      margin-top: 40px;
+      background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+      color: #333;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 18px 50px;
+      border-radius: 15px;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      z-index: 10;
+    }
+
+    .continue-btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      background: linear-gradient(135deg, #fff 0%, #e8e8e8 100%);
+    }
+
+    .continue-btn:active {
+      transform: translateY(-2px);
+    }
+
+    .arrow {
+      font-size: 24px;
+      transition: transform 0.3s ease;
+    }
+
+    .continue-btn:hover .arrow {
+      transform: translateX(8px);
+    }
+
+    /* Droplets */
+    .droplet {
+      position: absolute;
+      width: 10px;
+      height: 15px;
+      background: rgba(100, 149, 237, 0.7);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(45deg);
+      animation: fall 2s ease-in infinite;
+      opacity: 0;
+    }
+
+    @keyframes fall {
+      0% { top: -20px; opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        gap: 30px;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+        padding: 12px 25px;
+      }
+      
+      .sensor-board {
+        width: 90%;
+        max-width: 350px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Clip arts -->
+  <img src="../../assets/images/clip-top.png" class="clip-top" alt="Top Clip">
+  <img src="../../assets/images/clip-bottom.png" class="clip-bottom" alt="Bottom Clip">
+  <img src="../../assets/images/lion.gif" class="lion-gif" alt="Lion">
+
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Navigation -->
+  <div class="top-nav">
+    <div class="nav-btn" onclick="goHome()" title="Home">🏠</div>
+    <div class="nav-btn" onclick="goAchievements()" title="Achievements">🏆</div>
+    <div class="nav-btn" onclick="goBack()" title="Back">◀</div>
+  </div>
+
+  <!-- Title -->
+  <h1>🌱 Plant Soil Monitoring</h1>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="sensor-board">
+      <img src="../../assets/images/board.png" alt="Board" class="board-img">
+      <div class="sensor-visual">
+        <div class="water-level" id="waterLevel"></div>
+        <div class="soil-particles" id="soilParticles"></div>
+        <div class="sensor-probe"></div>
+        <img src="../../assets/images/lion.gif" alt="">
+      </div>
+    </div>
+
+    <div class="content-right">
+      <div class="speech">
+        <span id="typeText"></span>
+      </div>
+      
+      <div class="plant-container">
+        <div class="pot"></div>
+        <div class="soil" id="soil"></div>
+        <div class="plant" id="plant">
+          <svg viewBox="0 0 100 120">
+            <!-- Stem -->
+            <path d="M50 120 Q48 80 50 40" stroke="#2d5016" stroke-width="3" fill="none"/>
+            
+            <!-- Leaves -->
+            <ellipse cx="35" cy="60" rx="15" ry="25" fill="#4CAF50" transform="rotate(-30 35 60)"/>
+            <ellipse cx="65" cy="55" rx="15" ry="25" fill="#66BB6A" transform="rotate(30 65 55)"/>
+            <ellipse cx="40" cy="40" rx="12" ry="20" fill="#4CAF50" transform="rotate(-20 40 40)"/>
+            <ellipse cx="60" cy="35" rx="12" ry="20" fill="#66BB6A" transform="rotate(20 60 35)"/>
+            
+            <!-- Flower -->
+            <circle cx="50" cy="25" r="8" fill="#FFD700"/>
+            <circle cx="45" cy="20" r="5" fill="#FF69B4"/>
+            <circle cx="55" cy="20" r="5" fill="#FF69B4"/>
+            <circle cx="50" cy="15" r="5" fill="#FF1493"/>
+            <circle cx="42" cy="25" r="5" fill="#FF69B4"/>
+            <circle cx="58" cy="25" r="5" fill="#FF69B4"/>
+          </svg>
+        </div>
+        <div id="droplets"></div>
+      </div>
+      
+      <div class="moisture-container">
+        <div class="moisture-label">
+          <span>💧 Soil Moisture</span>
+          <span id="moisturePercent">0%</span>
+        </div>
+        <div class="moisture-bar">
+          <div class="moisture-fill" id="moistureFill"></div>
+        </div>
+        <div class="status-text" id="statusText">Checking soil...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Continue -->
+  <button class="continue-btn" onclick="continuePage()">
+    Continue <span class="arrow">→</span>
+  </button>
+
+  <script>
+    // Create particles
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 20; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 15 + 's';
+      particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+      particlesContainer.appendChild(particle);
+    }
+
+    // Create soil particles
+    const soilParticles = document.getElementById('soilParticles');
+    for (let i = 0; i < 30; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'soil-particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = (60 + Math.random() * 40) + '%';
+      particle.style.width = (2 + Math.random() * 3) + 'px';
+      particle.style.height = particle.style.width;
+      soilParticles.appendChild(particle);
+    }
+
+    // Typewriter effect
+    const typeText = document.getElementById("typeText");
+    const fullText = `
+🌱 It’s time to become a Smart Farmer!
+In this experiment, your Veera Kit uses a soil moisture sensor to check if the crops need water.
+When the soil is dry, it turns the pump ON automatically — and when it’s wet, it stops.
+This saves both water 💧 and energy ⚡!
+That’s exactly how modern farms grow food efficiently.
+Let’s see if your smart farm can water itself! 🚜!`;
+
+    let index = 0;
+    function typeWriter() {
+      if (index < fullText.length) {
+        typeText.textContent += fullText.charAt(index);
+        index++;
+        setTimeout(typeWriter, 30);
+      }
+    }
+    window.addEventListener("load", typeWriter);
+
+    // Moisture monitoring
+    const plant = document.getElementById("plant");
+    const moistureFill = document.getElementById("moistureFill");
+    const moisturePercent = document.getElementById("moisturePercent");
+    const statusText = document.getElementById("statusText");
+    const soil = document.getElementById("soil");
+    const waterLevel = document.getElementById("waterLevel");
+    const dropletsContainer = document.getElementById("droplets");
+
+    function createDroplet() {
+      const droplet = document.createElement('div');
+      droplet.className = 'droplet';
+      droplet.style.left = (Math.random() * 100) + '%';
+      droplet.style.animationDelay = Math.random() + 's';
+      dropletsContainer.appendChild(droplet);
+      setTimeout(() => droplet.remove(), 2000);
+    }
+
+    function setMoisture(level) {
+      moistureFill.style.width = level + "%";
+      moisturePercent.textContent = Math.round(level) + "%";
+      waterLevel.style.height = (level * 0.6) + "%";
+      
+      // Update plant appearance
+      plant.classList.remove('plant-dry', 'plant-moderate', 'plant-healthy');
+      
+      if (level < 30) {
+        // Dry
+        moistureFill.style.background = 'linear-gradient(90deg, #ff6b6b, #ee5a6f)';
+        statusText.textContent = '🥵 Plant is thirsty!';
+        statusText.style.color = '#ff6b6b';
+        plant.classList.add('plant-dry');
+        soil.style.background = '#8b7355';
+      } else if (level < 65) {
+        // Moderate
+        moistureFill.style.background = 'linear-gradient(90deg, #ffd93d, #ffb700)';
+        statusText.textContent = '💧 Needs some water';
+        statusText.style.color = '#ffd93d';
+        plant.classList.add('plant-moderate');
+        soil.style.background = '#6d5438';
+      } else {
+        // Healthy
+        moistureFill.style.background = 'linear-gradient(90deg, #a2ff9e, #34c759)';
+        statusText.textContent = '🌿 Plant is happy!';
+        statusText.style.color = '#a2ff9e';
+        plant.classList.add('plant-healthy');
+        soil.style.background = '#4d3a1f';
+        
+        // Add water droplets for happy plant
+        if (Math.random() > 0.7) {
+          createDroplet();
+        }
+      }
+    }
+
+    // Simulate moisture changes with smooth transitions
+    let currentLevel = 15;
+    let targetLevel = 15;
+    let increasing = true;
+
+    function updateMoisture() {
+      // Smoothly transition to target
+      if (Math.abs(currentLevel - targetLevel) > 0.5) {
+        currentLevel += (targetLevel - currentLevel) * 0.05;
+      } else {
+        currentLevel = targetLevel;
+        // Set new target
+        if (increasing) {
+          targetLevel = 85 + Math.random() * 10;
+        } else {
+          targetLevel = 10 + Math.random() * 15;
+        }
+        increasing = !increasing;
+      }
+      
+      setMoisture(currentLevel);
+    }
+
+    // Initial state
+    setMoisture(currentLevel);
+
+    // Update every 50ms for smooth animation
+    setInterval(updateMoisture, 50);
+
+    // Change target every 4 seconds
+    setInterval(() => {
+      if (increasing) {
+        targetLevel = 85 + Math.random() * 10;
+      } else {
+        targetLevel = 10 + Math.random() * 15;
+      }
+      increasing = !increasing;
+    }, 4000);
+
+    // Navigation functions
+function goNext() { window.location.href = "./C5E6.html"; }
+    function goHome() { window.location.href = "../welcome.html"; }
+    function goAchievements() { window.location.href = "page4.html";
+
+     }
+    function continuePage() { window.location.href = "./class6list.html"; }
+    function goBack() { window.history.back(); }
+  </script>
+</body>
+</html>
