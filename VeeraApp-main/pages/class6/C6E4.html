@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatic Light Control System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', sans-serif;
+            background-color: #e0f7fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Header */
+        header {
+            background-color: #00796b;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+        }
+
+        header h1 {
+            text-align: center;
+            flex: 1;
+            font-size: 24px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-buttons img {
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            border-radius: 50%;
+        }
+
+        .nav-buttons img:hover {
+            transform: scale(1.1);
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 40px 20px;
+        }
+
+        .system-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            gap: 50px;
+        }
+
+        .sensor img {
+            width: 140px;
+            height: auto;
+        }
+
+        .arduino img {
+            width: 250px;
+            height: auto;
+            z-index: 2;
+        }
+
+        .lion img {
+            width: 160px;
+            height: auto;
+        }
+
+        .line {
+            position: absolute;
+            top: 50%;
+            left: 150px;
+            width: 150px;
+            height: 3px;
+            background-color: #00796b;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        /* Typewriter box */
+        .typewriter-box {
+            margin-top: 30px;
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 20px;
+            width: 80%;
+            max-width: 700px;
+            text-align: center;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #004d40;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 6px;
+            background-color: #004d40;
+            animation: blink 0.8s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+
+            0%,
+            50%,
+            100% {
+                opacity: 1;
+            }
+
+            25%,
+            75% {
+                opacity: 0;
+            }
+        }
+
+        /* Footer */
+        footer {
+            background-color: #00796b;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+        }
+
+        footer button {
+            background-color: #004d40;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        footer button:hover {
+            background-color: #26a69a;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 18px;
+            }
+
+            .system-container {
+                flex-direction: column;
+            }
+
+            .line {
+                display: none;
+            }
+
+            .lion {
+                margin-top: 20px;
+            }
+
+            .typewriter-box {
+                width: 95%;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>💡 Automatic Light Control System</h1>
+
+        <div class="nav-buttons">
+            <a href="../welcome.html"><img src="../../assets/icons/home.png" alt="Home"></a>
+            <a href="../class6/C6E3P1.html"><img src="../../assets/icons/logout.png" alt="Logout"></a>
+            <a href="../page4.html"><img src="../../assets/icons/achievements.png" alt="Achievements"></a>
+        </div>
+    </header>
+    <audio id="voice" autoplay>
+        <source src="../../assets/Veera Kit Voices Class 6 and 7/Class 6 Experiment 4.mp3" type="audio/mpeg">
+    </audio>
+
+    <main>
+        <div class="system-container">
+            <div class="sensor">
+                <img src="../../assets/images/LDR.png" alt="LDR Sensor">
+                <div class="line"></div>
+            </div>
+
+            <div class="arduino">
+                <img src="../../assets/images/board.png" alt="Arduino Board">
+            </div>
+
+            <div class="lion">
+                <img src="../../assets/images/lion.gif" alt="Lion Animation">
+            </div>
+        </div>
+
+        <div class="typewriter-box" id="typewriter"></div>
+    </main>
+
+    <footer>
+        <button id="nextBtn">Next</button>
+    </footer>
+
+    <script>
+        const text = `🌞 Good morning! Or should I say... 🌙 good evening?
+Your Veera Kit is about to learn how to tell the difference!
+With its LDR sensor, it can feel how bright or dark the room is.
+When it’s dark, it switches the light ON — and when it’s bright, it turns it OFF.
+That’s how streetlights work smartly every night!
+Let’s see if your kit can light up the world the smart way! 💡`;
+
+        const typewriterEl = document.getElementById("typewriter");
+        let i = 0;
+
+        function typeEffect() {
+            if (i < text.length) {
+                typewriterEl.innerHTML = text.substring(0, i + 1) + '<span class="cursor"></span>';
+                i++;
+                setTimeout(typeEffect, 50);
+            } else {
+                typewriterEl.innerHTML = text + '<span class="cursor"></span>';
+            }
+        }
+
+        window.onload = typeEffect;
+
+        // Redirect when Next button clicked
+        document.getElementById("nextBtn").addEventListener("click", () => {
+            window.location.href = "C6E4-4.html";
+        });
+    </script>
+
+    <script src="SerialManager.js"></script>
+    <script src="./backend/experimentControls.js"></script>
+    <script src="../backend/renderer.js"></script>
+
+</body>
+
+</html>

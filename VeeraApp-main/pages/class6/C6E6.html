@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>6. Light & Sound Monitoring</title>
+  <style>
+    /* BASE STYLES & LAYOUT (FROM ORIGINAL TEMPLATE) */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      /* Changed background to fit Light/Sound theme */
+      background: linear-gradient(135deg, #1f2937 0%, #4f46e5 50%, #6366f1 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      overflow-x: hidden;
+      padding: 20px;
+      color: white;
+      /* Ensure text is visible on dark background */
+    }
+
+    /* Clip arts */
+    .clip-top {
+      position: absolute;
+      top: 70px;
+      left: 20px;
+      width: 140px;
+      opacity: 0.85;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      z-index: 5;
+      animation: float-clip 4s ease-in-out infinite;
+    }
+
+    .clip-bottom {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 150px;
+      opacity: 0.85;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      z-index: 5;
+      animation: float-clip 5s ease-in-out infinite;
+    }
+
+    .lion-gif {
+      position: absolute;
+      top: 50%;
+      right: 50px;
+      transform: translateY(-50%);
+      width: 180px;
+      opacity: 0.9;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+      z-index: 5;
+      animation: lion-bounce 3s ease-in-out infinite;
+    }
+
+    @keyframes float-clip {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    @keyframes lion-bounce {
+
+      0%,
+      100% {
+        transform: translateY(-50%) scale(1);
+      }
+
+      50% {
+        transform: translateY(-50%) scale(1.05);
+      }
+    }
+
+    /* Animated background particles */
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      animation: float 15s infinite ease-in-out;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      90% {
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(-100vh) translateX(50px);
+        opacity: 0;
+      }
+    }
+
+    /* Top Navigation */
+    .top-nav {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      display: flex;
+      gap: 12px;
+      z-index: 20;
+    }
+
+    .nav-btn {
+      width: 42px;
+      height: 42px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 50%;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .nav-btn:hover {
+      transform: scale(1.15) rotate(5deg);
+      background: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Title */
+    h1 {
+      margin-top: 60px;
+      background: rgba(255, 255, 255, 0.3);
+      padding: 15px 40px;
+      border-radius: 20px;
+      font-size: 2rem;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(15px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      animation: slideDown 0.6s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Content */
+    .content {
+      margin-top: 50px;
+      display: flex;
+      align-items: center;
+      gap: 60px;
+      flex-wrap: wrap;
+      justify-content: center;
+      z-index: 10;
+      animation: fadeIn 0.8s ease-out 0.3s backwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .sensor-board {
+      width: 420px;
+      position: relative;
+      transition: transform 0.3s ease;
+    }
+
+    .sensor-board:hover {
+      transform: translateY(-5px);
+    }
+
+    .board-img {
+      width: 100%;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    }
+
+    /* --- NEW/MODIFIED VISUAL STYLES --- */
+    .sensor-visual {
+      /* Hide the soil/water visual and show the new light/sound visual */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      inset: 0;
+      padding: 10%;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      background: rgba(0, 0, 0, 0.4);
+      /* Dark overlay */
+      border-radius: 15px;
+    }
+
+    .light-indicator,
+    .sound-indicator {
+      margin: 10px 0;
+      font-size: 3rem;
+      animation: indicator-pulse 1.5s infinite;
+    }
+
+    @keyframes indicator-pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+
+    .content-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 25px;
+    }
+
+    /* Speech bubble */
+    .speech {
+      /* Changed color for contrast with dark body background */
+      background: linear-gradient(135deg, #FFD700 0%, #FFB700 100%);
+      color: #000;
+      padding: 25px 30px;
+      border-radius: 25px;
+      font-size: 1.05rem;
+      max-width: 450px;
+      position: relative;
+      min-height: 120px;
+      text-align: left;
+      /* Changed to left for better script flow */
+      font-weight: 500;
+      box-shadow: 0 8px 25px rgba(255, 183, 0, 0.4);
+      border: 3px solid rgba(255, 255, 255, 0.4);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .speech::before {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      /* Changed to match new bubble color */
+      border-top: 20px solid #FFB700;
+    }
+
+    /* Plant container (re-purposed for dynamic visual) */
+    .plant-container {
+      /* Re-purposed to hold a generic indicator/scene element */
+      position: relative;
+      width: 250px;
+      height: 300px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .stage-visual {
+      /* New element for the dynamic scene (e.g., stage, classroom) */
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #374151, #111827);
+      border-radius: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      font-size: 4rem;
+      color: #fcd34d;
+      text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+    }
+
+
+    /* Moisture bar (re-purposed for dual indicator) */
+    .monitoring-indicators {
+      width: 320px;
+      background: rgba(255, 255, 255, 0.1);
+      /* Slightly transparent background */
+      padding: 20px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .indicator-row {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+
+    .indicator-label {
+      display: flex;
+      justify-content: space-between;
+      color: #fff;
+      font-weight: bold;
+      font-size: 1rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .bar-fill {
+      height: 15px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .fill-bar {
+      height: 100%;
+      width: 50%;
+      /* Placeholder width */
+      border-radius: 8px;
+      transition: width 0.5s ease;
+    }
+
+    .light-fill {
+      background: linear-gradient(90deg, #fde047, #f59e0b);
+    }
+
+    .sound-fill {
+      background: linear-gradient(90deg, #6366f1, #3b82f6);
+    }
+
+
+    .status-text {
+      margin-top: 12px;
+      text-align: center;
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.1rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    /* Continue Button */
+    .continue-btn {
+      margin-top: 40px;
+      background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+      color: #333;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 18px 50px;
+      border-radius: 15px;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      z-index: 10;
+    }
+
+    .continue-btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      background: linear-gradient(135deg, #fff 0%, #e8e8e8 100%);
+    }
+
+    .continue-btn:active {
+      transform: translateY(-2px);
+    }
+
+    .arrow {
+      font-size: 24px;
+      transition: transform 0.3s ease;
+    }
+
+    .continue-btn:hover .arrow {
+      transform: translateX(8px);
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        gap: 30px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        padding: 12px 25px;
+      }
+
+      .sensor-board {
+        width: 90%;
+        max-width: 350px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <img src="../../assets/images/clip-top.png" class="clip-top" alt="Top Clip">
+  <img src="../../assets/images/clip-bottom.png" class="clip-bottom" alt="Bottom Clip">
+  <img src="../../assets/images/lion.gif" class="lion-gif" alt="Lion">
+
+  <div class="particles" id="particles"></div>
+
+  <div class="top-nav">
+    <div class="nav-btn" onclick="goHome()" title="Home">🏠</div>
+    <div class="nav-btn" onclick="goAchievements()" title="Achievements">🏆</div>
+    <div class="nav-btn" onclick="goBack()" title="Back">↩️</div>
+  </div>
+
+  <h1>💡 Experiment 6: Light & Sound Monitoring 🔊</h1>
+
+  <audio id="voice" autoplay>
+    <source src="../../assets/Veera Kit Voices Class 6 and 7/Class 6 Expeiment 6.mp3" type="audio/mpeg">
+  </audio>
+
+  <div class="content">
+    <div class="sensor-board">
+      <img src="../../assets/images/board.png" alt="Board" class="board-img">
+
+      <div class="sensor-visual">
+        <span class="light-indicator">💡</span> LDR Sensor
+        <span class="sound-indicator">🎤</span> Sound Sensor
+      </div>
+    </div>
+
+    <div class="content-right">
+      <div class="speech">
+        <span id="typeText"></span>
+      </div>
+
+      <div class="plant-container">
+        <div class="stage-visual">
+          <span id="sceneIcon">🎤</span>
+          <span style="font-size: 1.2rem;">Concert Control</span>
+        </div>
+      </div>
+
+      <div class="monitoring-indicators">
+        <div class="indicator-row">
+          <div class="indicator-label">
+            <span>Light Intensity (LDR)</span>
+            <span id="lightValue">--- lux</span>
+          </div>
+          <div class="bar-fill">
+            <div class="fill-bar light-fill" id="lightFill"></div>
+          </div>
+        </div>
+
+        <div class="indicator-row">
+          <div class="indicator-label">
+            <span>Noise Level (dB)</span>
+            <span id="soundValue">--- dB</span>
+          </div>
+          <div class="bar-fill">
+            <div class="fill-bar sound-fill" id="soundFill"></div>
+          </div>
+        </div>
+
+        <div class="status-text" id="statusText">Ready to monitor!</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="continue-btn" onclick="continuePage()">
+    Continue <span class="arrow">→</span>
+  </button>
+
+  <script>
+    // --- JAVASCRIPT LOGIC ---
+
+    // Create particles
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 20; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 15 + 's';
+      particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+      particlesContainer.appendChild(particle);
+    }
+
+    // Typewriter effect
+    const typeText = document.getElementById("typeText");
+    const fullText = `
+🎶 Boom! Clap! Sparkle!
+This experiment is all about light and sound — two things that make our world exciting!
+Your Veera Kit uses an LDR to sense brightness and a sound sensor to detect noise.
+The louder or brighter it gets, the stronger the reaction you’ll see on screen.
+That’s how concerts and sound shows control lights with music!
+Let’s make your classroom groove with science! 🎤✨`;
+
+    let index = 0;
+    function typeWriter() {
+      if (index < fullText.length) {
+        typeText.textContent += fullText.charAt(index);
+        index++;
+        setTimeout(typeWriter, 30);
+      }
+    }
+    window.addEventListener("load", typeWriter);
+
+    // --- MOCK MONITORING LOGIC ---
+    const lightFill = document.getElementById("lightFill");
+    const soundFill = document.getElementById("soundFill");
+    const lightValueEl = document.getElementById("lightValue");
+    const soundValueEl = document.getElementById("soundValue");
+    const sceneIconEl = document.getElementById("sceneIcon");
+    const statusTextEl = document.getElementById("statusText");
+
+    let currentLight = 500;
+    let currentSound = 65;
+
+    function setMonitorValues(lightLevel, soundLevel) {
+      // Light (0-1000 lux)
+      const lightPct = Math.min(100, (lightLevel / 1000) * 100);
+      lightFill.style.width = lightPct + "%";
+      lightValueEl.textContent = `${Math.round(lightLevel)} lux`;
+
+      // Sound (0-120 dB)
+      const soundPct = Math.min(100, (soundLevel / 120) * 100);
+      soundFill.style.width = soundPct + "%";
+      soundValueEl.textContent = `${Math.round(soundLevel)} dB`;
+
+      // Update status
+      if (soundLevel > 80 || lightLevel > 800) {
+        statusTextEl.textContent = '🚨 High Activity Detected!';
+        statusTextEl.style.color = '#ff6b6b';
+        sceneIconEl.textContent = '🔥';
+      } else if (lightLevel < 200 || soundLevel < 40) {
+        statusTextEl.textContent = '🤫 Low Energy State';
+        statusTextEl.style.color = '#fff';
+        sceneIconEl.textContent = '🌙';
+      } else {
+        statusTextEl.textContent = '🎶 Optimal Monitoring';
+        statusTextEl.style.color = '#a2ff9e';
+        sceneIconEl.textContent = '🎤';
+      }
+    }
+
+    // Simulate fluctuating sensor readings
+    setInterval(() => {
+      currentLight = Math.max(100, Math.min(950, currentLight + (Math.random() - 0.5) * 150));
+      currentSound = Math.max(30, Math.min(95, currentSound + (Math.random() - 0.5) * 15));
+      setMonitorValues(currentLight, currentSound);
+    }, 1500);
+
+    // Initial setup
+    setMonitorValues(currentLight, currentSound);
+
+
+    // Navigation functions
+    function goHome() { window.location.href = "../welcome.html"; }
+    function goAchievements() { window.location.href = "../page4.html"; }
+    function continuePage() { window.location.href = "./C6E6-6.html"; }
+    function goBack() { window.history.back(); }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Water Level Alerting</title>
+    <script src="https://cdn.tailwindcss.com"></script> 
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Comic Sans MS", "Arial Rounded MT Bold", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            position: relative;
+            text-align: center;
+            overflow-x: hidden;
+            color: #222;
+            padding: 20px;
+        }
+
+        /* Animated water drops */
+        .water-drops {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .water-drop {
+            position: absolute;
+            width: 15px;
+            height: 20px;
+            background: rgba(100, 200, 255, 0.6);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(45deg);
+            animation: drop-fall 4s linear infinite;
+        }
+
+        @keyframes drop-fall {
+            0% { top: -30px; opacity: 0.8; }
+            100% { top: 110vh; opacity: 0; }
+        }
+
+        /* Decorative Clips */
+        .clip-top {
+            position: absolute;
+            top: 90px;
+            left: 20px;
+            width: 140px;
+            opacity: 0.9;
+            z-index: 5;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+            animation: float-clip 4s ease-in-out infinite;
+        }
+
+        .clip-bottom {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 170px;
+            opacity: 0.9;
+            z-index: 5;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+            animation: float-clip 5s ease-in-out infinite;
+        }
+
+        @keyframes float-clip {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(3deg); }
+        }
+
+        /* Header */
+        .header-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .heading {
+            font-size: 2.5rem;
+            font-weight: bold;
+            padding: 20px 45px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: #fff;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            animation: bounce-in 0.6s ease-out;
+            border: 4px solid rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes bounce-in {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .top-icons {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .top-icons img {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .top-icons img:hover {
+            transform: scale(1.15) rotate(10deg);
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Main Content */
+        .content {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 50px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+        }
+
+        /* Water Tank Container */
+        .tank-container {
+            animation: slide-in-left 0.8s ease-out;
+            position: relative;
+        }
+
+        @keyframes slide-in-left {
+            from { transform: translateX(-100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .tank-wrapper {
+            position: relative;
+            width: 350px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .tank-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2f2f2f;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        .water-tank {
+            position: relative;
+            width: 250px;
+            height: 350px;
+            background: linear-gradient(to bottom, 
+                rgba(200, 220, 255, 0.3) 0%,
+                rgba(180, 210, 255, 0.5) 100%);
+            border: 5px solid #4a90e2;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.2),
+                        0 5px 20px rgba(74, 144, 226, 0.3);
+        }
+
+        .water-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to top,
+                #1e90ff 0%,
+                #4facfe 50%,
+                #00d4ff 100%);
+            transition: height 0.8s ease;
+            /* Using transition for filling, removing continuous wave animation */
+        }
+
+        .water-fill::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -50%;
+            width: 200%;
+            height: 20px;
+            background: radial-gradient(ellipse at center, 
+                rgba(255, 255, 255, 0.3) 0%, 
+                transparent 70%);
+            /* Keeping wave motion CSS but JS controls water level bar height */
+        }
+
+        /* Add classes for overflow/alert coloring */
+        .water-fill.alert {
+            background: linear-gradient(to top, #ff4444 0%, #ff6b6b 50%, #ff8888 100%);
+        }
+        .water-fill.warning {
+            background: linear-gradient(to top, #ffd93d 0%, #ffb700 50%, #ffa500 100%);
+        }
+        .water-fill.safe {
+            background: linear-gradient(to top, #1e90ff 0%, #4facfe 50%, #00d4ff 100%);
+        }
+
+
+        .tank-level-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .threshold-marker {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #ff4444;
+            z-index: 5;
+            transition: bottom 0.3s ease;
+        }
+
+        .threshold-marker::before {
+            content: '⚠️ ALERT LINE';
+            position: absolute;
+            right: -120px;
+            top: -10px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #ff4444;
+            white-space: nowrap;
+        }
+
+        .item {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 30px 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: 3px solid rgba(255, 255, 255, 0.6);
+            animation: fade-in-up 0.8s ease-out;
+        }
+
+        @keyframes fade-in-up {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .item img {
+            width: 180px;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+            transition: transform 0.3s ease;
+        }
+
+        .item img:hover {
+            transform: scale(1.1);
+        }
+
+        .item p {
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: #2f2f2f;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 30px;
+            border-radius: 30px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #fff;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: scale(1.05); /* Reduced scale for groups */
+        }
+        
+        /* New Styles for Experiment Logic */
+        .btn.btn-stop-water {
+            background: linear-gradient(135deg, #1e90ff, #4facfe);
+        }
+        .btn.btn-stop-water.alert {
+            background: linear-gradient(135deg, #d62828, #ff6b6b);
+            animation: pulse 1s infinite;
+        }
+
+        .btn.btn-try-again {
+            background: linear-gradient(135deg, #0077ff, #00b4ff);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+
+        .btn-measure {
+            background: linear-gradient(135deg, #38b000, #5ed73e);
+        }
+
+        .btn-set {
+            background: linear-gradient(135deg, #0077ff, #00b4ff);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #d62828, #ff6b6b);
+        }
+
+        /* Distance display */
+        #distance-result {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2f2f2f;
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            min-width: 180px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Distance bar (Re-purposed for other status display or removed) */
+        #distance-bar {
+            width: 220px;
+            height: 30px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.6);
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #distance-bar span {
+            display: block;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #38b000, #5ed73e);
+            transition: width 0.8s ease, background 0.5s;
+            position: relative;
+            border-radius: 15px;
+        }
+
+        /* Input Threshold */
+        .threshold-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 12px 20px;
+            border-radius: 15px;
+        }
+
+        .threshold-container label {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #2f2f2f;
+        }
+
+        .threshold-container input {
+            width: 90px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 3px solid rgba(79, 172, 254, 0.5);
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+
+        .threshold-container input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
+            transform: scale(1.05);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Buzzer - special styling */
+        .buzzer-item {
+            min-height: 300px;
+            justify-content: center;
+        }
+
+        .buzzer-img {
+            width: 140px !important;
+        }
+
+        .buzzer-active {
+            animation: buzz-shake 0.5s ease-in-out infinite;
+        }
+
+        @keyframes buzz-shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        /* Lion */
+        .lion-item {
+            min-height: 300px;
+            justify-content: center;
+        }
+
+        .lion {
+            width: 280px !important;
+            height: 280px;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.25));
+        }
+
+        .lion:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Message Box */
+        #veeraMessageBox {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+            border-radius: 15px;
+            min-height: 80px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #2f2f2f;
+        }
+        
+        /* Next Button */
+        .next-btn {
+            margin: 50px 0 30px 0;
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+        }
+
+        .next-btn:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .next-btn span {
+            font-size: 2rem;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 18px 35px;
+            border-radius: 20px;
+            opacity: 0;
+            transition: all 0.4s ease;
+            font-weight: bold;
+            font-size: 1.1rem;
+            z-index: 999;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        /* Media Queries (Re-used from your provided code) */
+        @media (max-width: 768px) {
+            .heading {
+                font-size: 1.8rem;
+                padding: 15px 30px;
+            }
+
+            .content {
+                gap: 30px;
+            }
+
+            .tank-wrapper {
+                width: 90%;
+                max-width: 300px;
+            }
+
+            .water-tank {
+                width: 200px;
+                height: 300px;
+            }
+
+            .lion {
+                width: 220px !important;
+                height: 220px;
+            }
+
+            .item {
+                padding: 25px 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .button-group .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .heading {
+                font-size: 1.4rem;
+                padding: 12px 20px;
+            }
+
+            .lion {
+                width: 180px !important;
+                height: 180px;
+            }
+
+            #distance-bar {
+                width: 180px;
+            }
+
+            .water-tank {
+                width: 180px;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="water-drops" id="waterDropsContainer"></div>
+
+    <img src="../../assets/images/clip-top.png" class="clip-top" alt="Clip top" />
+    <img src="../../assets/images/clip-bottom.png" class="clip-bottom" alt="Clip bottom" />
+
+    <div class="header-container">
+        <div class="heading">💧 Water Level Alerting 🚨</div>
+        <div class="top-icons">
+            <img src="../../assets/icons/home.png" alt="Home" onclick="goHome()" />
+            <img src="../../assets/icons/achievements.png" alt="Achievements" onclick="goAchievements()" />
+            <img src="../../assets/icons/logout.png" alt="Back" onclick="goBack()" />
+            <button id="connect-serial-btn" class="p-0 border-0" title="Connect to Veera Kit">
+                <img id="serial-icon-placeholder" src="../../assets/icons/settings.png" alt="Settings" />
+            </button>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="tank-container">
+            <div class="tank-wrapper">
+                <div class="tank-title">🚰 Water Tank</div>
+                <div class="water-tank">
+                    <div class="water-fill" id="waterFill"></div>
+                    <div class="tank-level-text" id="tankLevelText">0%</div>
+                    <div class="threshold-marker" id="thresholdMarker" style="bottom: 25%;"></div>
+                </div>
+                <div id="tankStatus" style="font-size: 1rem; color: #2f2f2f; font-weight: bold;">
+                    Tank Ready
+                </div>
+                
+                <div class="button-group">
+                    <button id="stop-water-btn" class="btn btn-stop-water">🚰 Stop Water Supply</button>
+                    <button id="reset-experiment-btn" class="btn btn-try-again hidden">🔄 Try Again</button>
+                </div>
+                
+                <div id="statusMessagesContainer" style="min-height: 40px; margin-top: 10px;">
+                    </div>
+            </div>
+        </div>
+
+        <div class="item">
+            <img src="../../assets/images/ultrasonic.png" alt="Ultrasonic Sensor" />
+            <p>📡 Ultrasonic Sensor</p>
+            <button id="btn-measure" class="btn btn-measure">🔍 Measure Distance</button>
+            <div id="distance-result">Distance: -- cm</div>
+            <div id="distance-bar"><span></span></div>
+
+            <div class="threshold-container">
+                <label for="threshold-input-ui">⚠️ Threshold:</label>
+                <input type="number" id="threshold-input-ui" min="1" max="100" value="30" />
+                <span style="font-weight: bold;">cm</span>
+            </div>
+
+            <div class="button-group">
+                <button id="btn-set" class="btn btn-set">✓ Set</button>
+                <button id="btn-reset" class="btn btn-reset">↻ Reset</button>
+            </div>
+        </div>
+
+        <div class="item buzzer-item">
+            <img src="../../assets/images/buzzer.png" alt="Buzzer" class="buzzer-img" id="buzzerImg" />
+            <p>🔔 Buzzer</p>
+            <p id="buzzer-status" style="font-size: 1rem; color: #666; font-weight: bold;">Ready to Alert!</p>
+        </div>
+
+        <div class="item lion-item">
+            <img src="../../assets/images/lion.png" alt="Lion Mascot" class="lion" id="lion" />
+            <div id="veeraMessageBox" style="min-height: 80px; margin-top: -10px;">
+                Welcome to Water Level Alerting experiment! Watch as the tank fills up and learn when to stop the water supply.
+            </div>
+            <button id="speak-btn-footer" class="btn btn-set" style="padding: 10px 20px;">
+                🔊 Speak Message
+            </button>
+        </div>
+    </div>
+
+    <!-- <button class="next-btn" onclick="goNext()">
+        Next Experiment <span>🦁</span>
+    </button> -->
+
+    <!-- <button class="next-btn" >
+      <a href="#" class="learn-more-link" onclick="goToPage('C5E5.html')" ; return false;> Next Experiment →</a>
+        Next Experiment <span>🦁</span>
+    </button> -->
+
+     <button class="next-btn" >
+      <a href="#" class="learn-more-link"  onclick="goNext()" ; return false;> Next Experiment →</a>
+        <span>🦁</span>
+    </button>
+
+   
+
+    <audio id="voice" autoplay>
+        <source src="../../assets/voice/VOICE OVER PAGE 13.mp3" type="audio/mpeg" />
+    </audio>
+
+    <script>
+        // --- STATE VARIABLES (Window Scope - Mapped to UI) ---
+        window.waterLevel = 0;
+        window.isFilling = true;
+        window.isOverflowing = false;
+        window.buzzerActive = false;
+        window.thresholdReached = false;
+        window.isConnected = false; // Serial API status
+        window.veeraMessage = "Welcome to Water Level Alerting experiment! Watch as the tank fills up and learn when to stop the water supply.";
+        
+        let serialPort = null;
+        let hasSpoken = false;
+        let fillIntervalId = null;
+        let buzzerTimeoutId = null;
+
+        const THRESHOLD_LEVEL = 75;
+        const OVERFLOW_LEVEL = 100;
+        
+        function goNext() { window.location.href = "C5E5.html"; }
+
+        // Use a local variable to mirror the UI input
+        let currentThreshold = 30; // Matches default value in your input field
+        const maxDistance = 100; // Max distance for calculations
+
+        // --- DOM ELEMENTS (Cached) ---
+        const audio = document.getElementById("voice");
+        const lion = document.getElementById("lion");
+        const buzzerImg = document.getElementById("buzzerImg");
+        const buzzerStatus = document.getElementById("buzzer-status");
+        const toast = document.getElementById("toast");
+        const waterFill = document.getElementById("waterFill");
+        const tankLevelText = document.getElementById("tankLevelText");
+        const tankStatus = document.getElementById("tankStatus");
+        const thresholdMarker = document.getElementById("thresholdMarker");
+        const veeraMessageBox = document.getElementById("veeraMessageBox");
+        const statusMessagesContainer = document.getElementById("statusMessagesContainer");
+        const stopWaterBtn = document.getElementById("stop-water-btn");
+        const resetExperimentBtn = document.getElementById("reset-experiment-btn");
+        const thresholdInputUI = document.getElementById("threshold-input-ui");
+        const btnSet = document.getElementById("btn-set");
+        const btnReset = document.getElementById("btn-reset");
+        const speakBtnFooter = document.getElementById("speak-btn-footer");
+        const connectSerialBtn = document.getElementById('connect-serial-btn');
+        const serialIconPlaceholder = document.getElementById('serial-icon-placeholder');
+        
+        // --- INITIAL SETUP ---
+        
+        // Create animated water drops
+        const waterDropsContainer = document.getElementById('waterDropsContainer');
+        for (let i = 0; i < 20; i++) {
+            const drop = document.createElement('div');
+            drop.className = 'water-drop';
+            drop.style.left = Math.random() * 100 + '%';
+            drop.style.animationDelay = Math.random() * 4 + 's';
+            drop.style.animationDuration = (3 + Math.random() * 2) + 's';
+            waterDropsContainer.appendChild(drop);
+        }
+
+        // --- VOICEOVER/SPEECH FUNCTION ---
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = 1.2;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // Toast notification
+        function showToast(msg, type = "success") {
+            toast.textContent = msg;
+            toast.style.background = type === "success" 
+                ? "linear-gradient(135deg, #38b000, #5ed73e)"
+                : "linear-gradient(135deg, #d62828, #ff6b6b)";
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 2500);
+        }
+        
+        // --- BUZZER FUNCTION (Web Audio API) ---
+        function playBuzzer() {
+            if ('AudioContext' in window || 'webkitAudioContext' in window) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioCtx = new AudioContext();
+
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        const oscillator = audioCtx.createOscillator();
+                        const gainNode = audioCtx.createGain();
+
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioCtx.destination);
+
+                        oscillator.frequency.value = 800;
+                        oscillator.type = 'square';
+
+                        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+                        oscillator.start(audioCtx.currentTime);
+                        oscillator.stop(audioCtx.currentTime + 0.3);
+                    }, i * 400);
+                }
+            }
+        }
+
+
+        // --- RENDER/UPDATE FUNCTION ---
+        function updateThresholdMarker(thresholdValue) {
+            // Calculate bottom position based on THRESHOLD_LEVEL (75%)
+            // We ignore the user input threshold for visual placement since it's a fixed line in the image
+            const percentage = THRESHOLD_LEVEL;
+            thresholdMarker.style.bottom = percentage + '%';
+        }
+        
+        function updateTank(waterLevel) {
+            // Water Tank Animation
+            const fillHeight = Math.max(0, Math.min(100, waterLevel));
+            waterFill.style.height = `${fillHeight}%`;
+            tankLevelText.textContent = `${Math.floor(waterLevel)}%`;
+            
+            // Check against current threshold (distance is small = water is high)
+            // Note: In the CSS tank design, waterLevel (0-100%) is used directly.
+            
+            let barColorClass = "safe";
+            let statusText = "✓ Tank Level Safe";
+            let statusColor = "#38b000";
+            let buzzerText = "✓ Water Level Safe";
+            let buzzerColor = "#38b000";
+
+            if (waterLevel >= THRESHOLD_LEVEL) {
+                // Water level is ABOVE threshold
+                barColorClass = "alert";
+                statusText = "🚨 OVERFLOW ALERT!";
+                statusColor = "#d62828";
+                buzzerText = "🚨 ALERT! Water Too High!";
+                buzzerColor = "#d62828";
+                window.buzzerActive = true;
+            } else if (waterLevel >= THRESHOLD_LEVEL - 10) { // Warning zone (e.g., 65%-75%)
+                barColorClass = "warning";
+                statusText = "⚠️ Warning: Getting Full";
+                statusColor = "#ff8800";
+                buzzerText = "⚠️ Water Getting High";
+                buzzerColor = "#ff8800";
+                window.buzzerActive = false;
+            } else {
+                window.buzzerActive = false;
+            }
+
+            // Apply coloring and status messages
+            waterFill.className = `water-fill ${barColorClass}`;
+            tankStatus.textContent = statusText;
+            tankStatus.style.color = statusColor;
+            buzzerStatus.textContent = buzzerText;
+            buzzerStatus.style.color = buzzerColor;
+            
+            buzzerImg.classList.toggle("buzzer-active", window.buzzerActive);
+            
+            // Status Messages for bottom container
+            let statusMessageHTML = '';
+            if (window.thresholdReached && window.isFilling && !window.isOverflowing) {
+                statusMessageHTML = `<div class="bg-yellow-500 text-white px-6 py-3 rounded-lg font-bold text-lg animate-pulse shadow-lg">
+                    ⚠ Warning: Water level critical!
+                </div>`;
+            } else if (window.isOverflowing) {
+                statusMessageHTML = `<div class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-lg animate-bounce shadow-lg">
+                    🚨 OVERFLOW! Water is spilling!
+                </div>`;
+            } else if (!window.isFilling && !window.isOverflowing) {
+                statusMessageHTML = `<div class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-lg shadow-lg">
+                    ✅ Success! Water supply stopped safely.
+                </div>`;
+            }
+            statusMessagesContainer.innerHTML = statusMessageHTML;
+            
+            // Veera Message Box Update
+            veeraMessageBox.textContent = window.veeraMessage;
+            
+            // Serial Icon and UI Sync
+            const serialIconSrc = window.isConnected ? '../../assets/icons/settings_green.png' : '../../assets/icons/settings.png';
+            serialIconPlaceholder.src = serialIconSrc;
+            
+            // Button visibility
+            stopWaterBtn.classList.toggle('hidden', !window.isFilling || window.waterLevel >= OVERFLOW_LEVEL);
+            resetExperimentBtn.classList.toggle('hidden', window.isFilling && window.waterLevel < OVERFLOW_LEVEL);
+            
+            // Stop button alert color
+            stopWaterBtn.classList.toggle('btn-stop-water', !window.thresholdReached);
+            stopWaterBtn.classList.toggle('btn-stop-water-alert', window.thresholdReached);
+            
+            stopWaterBtn.classList.toggle('animate-pulse', window.thresholdReached && window.isFilling && !window.isOverflowing);
+
+            // Hide/Show Measure buttons based on experiment status (since they conflict)
+            const measureControls = document.querySelector('.item');
+            if (measureControls) {
+                measureControls.classList.toggle('hidden', window.isFilling || window.isOverflowing);
+            }
+        }
+        
+        // --- EXPERIMENT LOGIC ---
+        function startFillingAnimation() {
+            clearInterval(fillIntervalId);
+            if (window.isFilling && window.waterLevel < OVERFLOW_LEVEL + 20) {
+                fillIntervalId = setInterval(() => {
+                    window.waterLevel += 1;
+                    
+                    // Check threshold
+                    if (window.waterLevel >= THRESHOLD_LEVEL && !window.thresholdReached) {
+                        window.thresholdReached = true;
+                        window.buzzerActive = true;
+                        const alertMsg = "Alert! Water level is reaching threshold. Press the button to stop water supply!";
+                        window.veeraMessage = alertMsg;
+                        // sendToKit(`THRESHOLD_REACHED:${window.waterLevel}`); // Serial
+                        playBuzzer();
+                        speak(alertMsg);
+                        buzzerTimeoutId = setTimeout(() => { window.buzzerActive = false; updateTank(window.waterLevel); }, 2000);
+                    }
+                    
+                    // Check overflow
+                    if (window.waterLevel >= OVERFLOW_LEVEL && !window.isOverflowing) {
+                        window.isOverflowing = true;
+                        const overflowMsg = "Oh no! The water is overflowing! You should have stopped it earlier. Try again!";
+                        window.veeraMessage = overflowMsg;
+                        // sendToKit(`OVERFLOW:${window.waterLevel}`); // Serial
+                        speak(overflowMsg);
+                        clearInterval(fillIntervalId);
+                    }
+
+                    if (window.waterLevel >= OVERFLOW_LEVEL + 20) {
+                        clearInterval(fillIntervalId);
+                        window.isFilling = false;
+                    }
+                    
+                    updateTank(window.waterLevel);
+                }, 100);
+            }
+        }
+        
+        function stopWaterSupply() {
+            clearInterval(fillIntervalId);
+            clearTimeout(buzzerTimeoutId);
+            window.isFilling = false;
+            window.buzzerActive = false;
+            
+            if (!window.isOverflowing) {
+                const successMsg = "Great job! You stopped the water supply in time. The tank is safe from overflow!";
+                window.veeraMessage = successMsg;
+                // sendToKit(`WATER_STOPPED:${window.waterLevel}`); // Serial
+                speak(successMsg);
+            }
+            updateTank(window.waterLevel);
+        }
+
+        function resetExperiment() {
+            clearInterval(fillIntervalId);
+            clearTimeout(buzzerTimeoutId);
+            window.waterLevel = 0;
+            window.isFilling = true;
+            window.isOverflowing = false;
+            window.thresholdReached = false;
+            window.buzzerActive = false;
+            const resetMsg = "Let's try again! Watch carefully and stop the water at the right time.";
+            window.veeraMessage = resetMsg;
+            // sendToKit("RESET"); // Serial
+            speak(resetMsg);
+            
+            startFillingAnimation();
+            updateTank(window.waterLevel);
+        }
+        
+        // --- SERIAL COMMUNICATION PLACEHOLDERS ---
+        const connectSerial = async () => {
+            showToast("Attempting to connect via Serial API...", "info");
+            window.isConnected = !window.isConnected; // Mock toggle connection
+            const connectMsg = window.isConnected ? "Great! I'm now connected to your Veera Kit." : "Disconnected from Veera Kit.";
+            window.veeraMessage = connectMsg;
+            speak(connectMsg);
+            updateTank(window.waterLevel);
+        };
+        
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Auto-play Veera's voice on page load
+            if (!hasSpoken) {
+                hasSpoken = true;
+                setTimeout(() => {
+                    speak(window.veeraMessage);
+                }, 500);
+            }
+            
+            // Start filling simulation
+            startFillingAnimation();
+            updateThresholdMarker(THRESHOLD_LEVEL); // Initialize threshold marker visual
+
+            // --- ATTACH EVENT LISTENERS ---
+            
+            // Experiment Controls
+            stopWaterBtn.addEventListener('click', stopWaterSupply);
+            resetExperimentBtn.addEventListener('click', resetExperiment);
+            
+            // Speech Controls
+            document.getElementById('speak-btn-footer').addEventListener('click', () => speak(window.veeraMessage));
+            // document.getElementById('speak-btn-header').addEventListener('click', () => speak(window.veeraMessage)); // Removed header button structure
+            
+            // Serial/UI Controls
+            connectSerialBtn.addEventListener('click', connectSerial);
+            
+            // Lion Animation Logic (Re-used from your provided code)
+            audio.addEventListener("play", () => (lion.src = "../../assets/images/lion.gif"));
+            audio.addEventListener("ended", () => (lion.src = "../../assets/images/lion.png"));
+            
+            // Navigation (Re-used from your provided code)
+            function goNext() { /* window.location.href = "C5E5.html"; */ showToast("Navigating to next experiment..."); }
+            function goHome() { /* window.location.href = "../welcome.html"; */ showToast("Navigating home..."); }
+            function goAchievements() { /* window.location.href = "../page4.html"; */ showToast("Navigating to achievements..."); }
+            function goBack() { window.history.back(); }
+
+            // Mock implementation for the existing Ultrasonic/Threshold buttons
+            document.getElementById("btn-measure").addEventListener("click", () => {
+                showToast("📡 Measuring water level... (Mock data)");
+                updateTank(Math.floor(Math.random() * 100));
+            });
+
+            document.getElementById("btn-set").addEventListener("click", () => {
+                const threshold = parseInt(document.getElementById("threshold-input-ui").value);
+                if (!threshold || threshold < 1 || threshold > 100) {
+                    showToast("⚠️ Please enter a valid threshold (1-100 cm)!", "error");
+                    return;
+                }
+                // We mock the threshold change as the experiment uses a fixed 75% point
+                showToast(`✅ Threshold set to ${threshold} cm (Note: Experiment logic uses 75% fixed level)`);
+            });
+
+            document.getElementById("btn-reset").addEventListener("click", () => {
+                showToast("🔄 UI controls reset.");
+                document.getElementById("threshold-input-ui").value = 30;
+                document.getElementById("distance-result").innerText = "Distance: -- cm";
+                document.querySelector("#distance-bar span").style.width = "0%";
+            });
+
+
+            // Initial Render
+            updateTank(window.waterLevel);
+        });
+    </script>
+
+    <script src="../serial-handler.js"></script>
+    <script src="SerialManager.js"></script>
+    <script src="./backend/experimentControls.js"></script>
+    <script src="../backend/renderer.js"></script>
+
+</body>
+</html>

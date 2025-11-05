@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class 5 Experiment 6: Classroom Temperature Monitoring</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #007bff, #80d0ff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+      color: #fff;
+      text-align: center;
+      position: relative;
+      padding-bottom: 60px;
+    }
+
+    .top-icons {
+      position: fixed;
+      top: 20px;
+      right: 30px;
+      display: flex;
+      gap: 15px;
+      z-index: 1000;
+    }
+
+    .top-icons button {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: 0.3s ease;
+      backdrop-filter: blur(6px);
+    }
+
+    .top-icons button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(255,255,255,0.6);
+    }
+
+    h1 {
+      margin-top: 90px;
+      font-size: 2.3rem;
+      background: rgba(0,0,0,0.35);
+      padding: 15px 35px;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      backdrop-filter: blur(8px);
+    }
+
+    .scene {
+      margin-top: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 50px;
+      flex-wrap: wrap;
+      width: 90%;
+      max-width: 1200px;
+      position: relative;
+    }
+
+    .classroom {
+      background: rgba(255,255,255,0.15);
+      border-radius: 16px;
+      padding: 25px;
+      width: 450px;
+      height: 350px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.5s ease;
+    }
+
+    .classroom-interior {
+      width: 100%;
+      height: 100%;
+      background: #f5f5dc;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.5s ease;
+    }
+
+    .blackboard {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70%;
+      height: 80px;
+      background: #2d5016;
+      border: 4px solid #8b4513;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: 700;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .desks {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+    }
+
+    .desk {
+      width: 60px;
+      height: 50px;
+      background: #d2691e;
+      border-radius: 6px;
+      border: 3px solid #8b4513;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    .desk::after {
+      content: "📚";
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.5rem;
+    }
+
+    .thermo-big {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 70px;
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .thermo-bulb {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #ff4444;
+      border: 3px solid #fff;
+      box-shadow: 0 0 15px rgba(255,68,68,0.8);
+      animation: pulse 1.5s ease-in-out infinite;
+      transition: all 0.5s ease;
+    }
+
+    .thermo-tube {
+      width: 18px;
+      height: 120px;
+      background: rgba(255,255,255,0.3);
+      border: 3px solid #fff;
+      border-radius: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .thermo-mercury {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: linear-gradient(to top, #ff4444, #ff8888);
+      transition: height 0.5s ease, background 0.5s ease;
+      border-radius: 10px;
+    }
+
+    .temp-display {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.4);
+      padding: 5px 12px;
+      border-radius: 8px;
+      animation: glow 2s ease-in-out infinite;
+    }
+
+    .temp-status {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 2.5rem;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    .heat-wave {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .wave {
+      position: absolute;
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 100, 0, 0.5);
+      animation: wave-move 2s linear infinite;
+    }
+
+    .wave:nth-child(1) { top: 20%; animation-delay: 0s; }
+    .wave:nth-child(2) { top: 40%; animation-delay: 0.5s; }
+    .wave:nth-child(3) { top: 60%; animation-delay: 1s; }
+    .wave:nth-child(4) { top: 80%; animation-delay: 1.5s; }
+
+    @keyframes wave-move {
+      0% { transform: translateX(-100%) scaleX(0); }
+      50% { transform: translateX(0%) scaleX(1); }
+      100% { transform: translateX(100%) scaleX(0); }
+    }
+
+    .snowflakes {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      overflow: hidden;
+    }
+
+    .snowflake {
+      position: absolute;
+      color: #ffffff;
+      font-size: 1.5rem;
+      animation: fall 3s linear infinite;
+      will-change: transform;
+    }
+
+    .snowflake:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .snowflake:nth-child(2) { left: 30%; animation-delay: 1s; }
+    .snowflake:nth-child(3) { left: 50%; animation-delay: 2s; }
+    .snowflake:nth-child(4) { left: 70%; animation-delay: 0.5s; }
+    .snowflake:nth-child(5) { left: 90%; animation-delay: 1.5s; }
+
+    @keyframes fall {
+      0% { top: -10%; opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    .lion {
+      width: 250px;
+      height: auto;
+      object-fit: contain;
+      animation: float 3.5s ease-in-out infinite;
+    }
+
+    .kit-container {
+      background: rgba(255,255,255,0.15);
+      border-radius: 16px;
+      padding: 20px;
+      width: 280px;
+      height: 350px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      transition: transform 0.3s ease;
+    }
+
+    .kit-container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    }
+
+    .kit-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      margin-bottom: 10px;
+    }
+
+    .kit-image {
+      width: 100%;
+      height: 240px;
+      object-fit: contain;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.1);
+      padding: 10px;
+    }
+
+    .kit-label {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      background: rgba(0,0,0,0.3);
+      padding: 8px 16px;
+      border-radius: 8px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .connection-status {
+      position: fixed;
+      top: 80px;
+      right: 30px;
+      background: rgba(0,0,0,0.4);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      backdrop-filter: blur(6px);
+      z-index: 999;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .status-connected { background: #4caf50; }
+    .status-disconnected { background: #f44336; }
+    .status-waiting { background: #ff9800; }
+
+    .speech {
+      background: rgba(255,255,255,0.9);
+      color: #000;
+      padding: 20px 25px;
+      border-radius: 16px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+      max-width: 700px;
+      margin-top: 40px;
+      text-align: left;
+      font-size: 1.1rem;
+      font-weight: 600;
+      line-height: 1.6;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .speech::after {
+      content: "";
+      position: absolute;
+      left: -18px;
+      top: 50%;
+      transform: translateY(-50%);
+      border-right: 18px solid rgba(255,255,255,0.9);
+      border-top: 12px solid transparent;
+      border-bottom: 12px solid transparent;
+    }
+
+    .typewriter {
+      overflow: hidden;
+      border-right: 3px solid #007bff;
+      white-space: pre-wrap;
+      animation: typing 6s steps(60, end), blink 0.75s step-end infinite;
+    }
+
+    @keyframes typing {
+      from { width: 0 }
+      to { width: 100% }
+    }
+
+    @keyframes blink {
+      from, to { border-color: transparent }
+      50% { border-color: #007bff }
+    }
+
+    .continue-btn {
+      margin-top: 40px;
+      background: #fff;
+      color: #007bff;
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding: 14px 35px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .continue-btn:hover {
+      transform: scale(1.05);
+      background: #e6f0ff;
+    }
+
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes pulse {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    @keyframes glow {
+      0%,100% { text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+      50% { text-shadow: 2px 2px 15px rgba(255,255,255,0.8); }
+    }
+
+    @keyframes bounce {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    @media (max-width: 768px) {
+      .scene { flex-direction: column; align-items: center; }
+      .lion { width: 200px; }
+      h1 { font-size: 1.8rem; }
+      .classroom { width: 350px; height: 300px; }
+      .kit-container { width: 350px; height: 300px; }
+      .kit-image { height: 200px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-icons">
+    <button onclick="goHome()" title="Home">🏠</button>
+    <button onclick="goAchievements()" title="Achievements">🏆</button>
+    <button onclick="goBack()" title="Back">⬅️</button>
+  </div>
+
+  <div class="connection-status">
+    <span class="status-dot status-waiting" id="statusDot"></span>
+    <span id="statusText">Waiting for Kit...</span>
+  </div>
+
+  <h1>Classroom Temperature Monitoring System</h1>
+
+  <div class="scene">
+    <div class="classroom" id="classroom">
+      <div class="classroom-interior" id="classroomInterior">
+        <div class="blackboard">Welcome Class! 📖</div>
+        
+        <div class="desks">
+          <div class="desk"></div>
+          <div class="desk"></div>
+          <div class="desk"></div>
+        </div>
+        
+        <div class="temp-status" id="tempStatus">😊</div>
+        
+        <div class="thermo-big">
+          <div class="temp-display" id="temperature">--°C</div>
+          <div class="thermo-tube">
+            <div class="thermo-mercury" id="mercury"></div>
+          </div>
+          <div class="thermo-bulb" id="thermoBulb"></div>
+        </div>
+        
+        <div class="heat-wave" id="heatWave">
+          <div class="wave"></div>
+          <div class="wave"></div>
+          <div class="wave"></div>
+          <div class="wave"></div>
+        </div>
+        
+        <div class="snowflakes" id="snowflakes">
+          <div class="snowflake">❄️</div>
+          <div class="snowflake">❄️</div>
+          <div class="snowflake">❄️</div>
+          <div class="snowflake">❄️</div>
+          <div class="snowflake">❄️</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="kit-container">
+      <div class="kit-title">🔬 Veera Kit</div>
+      <img src="../../assets/images/board.png" alt="Veera Kit" class="kit-image" 
+           onerror="this.style.display='none';">
+      <div class="kit-label">Temperature Sensor Active</div>
+    </div>
+    
+    <img src="../../assets/images/lion.gif" alt="Veera" class="lion" id="lion">
+  </div>
+
+  <div class="speech">
+    <div class="typewriter" id="typedText"></div>
+  </div>
+
+  <button class="continue-btn" onclick="continuePage()">CONTINUE ➜</button>
+
+  <audio id="voice" preload="auto">
+    <source src="../../assets/voice/VOICE OVER PAGE 16.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const text = `🏫 Hello students!
+Imagine a classroom that always stays comfortable — never too hot, never too cold.
+With this experiment, your Veera Kit will act like a mini weather station!
+The temperature sensor will keep track of how warm your class is.
+This data helps us decide when to turn fans or AC ON.
+Ready to make your classroom smart and comfy? Let's monitor the temperature!`;
+
+    const typedText = document.getElementById("typedText");
+    let i = 0;
+    function typeWriter() {
+      if (i < text.length) {
+        typedText.innerHTML += text.charAt(i);
+        i++;
+        setTimeout(typeWriter, 40);
+      }
+    }
+    window.addEventListener("load", typeWriter);
+
+    // UI Elements
+    const tempDisplay = document.getElementById("temperature");
+    const mercury = document.getElementById("mercury");
+    const thermoBulb = document.getElementById("thermoBulb");
+    const classroomInterior = document.getElementById("classroomInterior");
+    const tempStatus = document.getElementById("tempStatus");
+    const heatWave = document.getElementById("heatWave");
+    const snowflakes = document.getElementById("snowflakes");
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    
+    let currentTemp = null;
+    let isConnected = false;
+
+    // Update UI with temperature from Veera Kit
+    function updateTemperatureUI(temp) {
+      if (temp === null || temp === undefined || isNaN(temp)) {
+        tempDisplay.textContent = "--°C";
+        return;
+      }
+
+      currentTemp = parseFloat(temp);
+      tempDisplay.textContent = currentTemp.toFixed(1) + "°C";
+      
+      // Calculate mercury height (20°C = 20%, 35°C = 100%)
+      let mercuryHeight = Math.max(0, Math.min(100, ((currentTemp - 20) / 15) * 100));
+      mercury.style.height = mercuryHeight + "%";
+      
+      // Color changes based on temperature
+      if (currentTemp < 23) {
+        // COLD - Blue tones
+        classroomInterior.style.background = "linear-gradient(135deg, #e3f2fd, #bbdefb)";
+        mercury.style.background = "linear-gradient(to top, #2196f3, #64b5f6)";
+        thermoBulb.style.background = "#2196f3";
+        thermoBulb.style.boxShadow = "0 0 20px rgba(33, 150, 243, 0.8)";
+        tempDisplay.style.color = "#2196f3";
+        tempStatus.textContent = "🥶";
+        heatWave.style.opacity = "0";
+        snowflakes.style.opacity = "0.6";
+      } else if (currentTemp < 27) {
+        // COMFORTABLE - Green tones
+        classroomInterior.style.background = "linear-gradient(135deg, #e8f5e9, #c8e6c9)";
+        mercury.style.background = "linear-gradient(to top, #4caf50, #81c784)";
+        thermoBulb.style.background = "#4caf50";
+        thermoBulb.style.boxShadow = "0 0 20px rgba(76, 175, 80, 0.8)";
+        tempDisplay.style.color = "#4caf50";
+        tempStatus.textContent = "😊";
+        heatWave.style.opacity = "0";
+        snowflakes.style.opacity = "0";
+      } else if (currentTemp < 30) {
+        // WARM - Yellow/Orange tones
+        classroomInterior.style.background = "linear-gradient(135deg, #fff8e1, #ffe082)";
+        mercury.style.background = "linear-gradient(to top, #ff9800, #ffb74d)";
+        thermoBulb.style.background = "#ff9800";
+        thermoBulb.style.boxShadow = "0 0 20px rgba(255, 152, 0, 0.8)";
+        tempDisplay.style.color = "#ff9800";
+        tempStatus.textContent = "😅";
+        heatWave.style.opacity = "0.3";
+        snowflakes.style.opacity = "0";
+      } else {
+        // HOT - Red tones
+        classroomInterior.style.background = "linear-gradient(135deg, #ffebee, #ffcdd2)";
+        mercury.style.background = "linear-gradient(to top, #f44336, #e57373)";
+        thermoBulb.style.background = "#f44336";
+        thermoBulb.style.boxShadow = "0 0 25px rgba(244, 67, 54, 1)";
+        tempDisplay.style.color = "#f44336";
+        tempStatus.textContent = "🥵";
+        heatWave.style.opacity = "0.6";
+        snowflakes.style.opacity = "0";
+      }
+    }
+
+    // Update connection status
+    function updateConnectionStatus(connected) {
+      isConnected = connected;
+      if (connected) {
+        statusDot.className = "status-dot status-connected";
+        statusText.textContent = "Kit Connected";
+      } else {
+        statusDot.className = "status-dot status-disconnected";
+        statusText.textContent = "Kit Disconnected";
+      }
+    }
+
+    // Serial Communication Setup
+    document.addEventListener("DOMContentLoaded", () => {
+      // Send experiment initialization
+      if (window.serialAPI?.send) {
+        window.serialAPI.send("SET_EXPERIMENT_6");
+        console.log("Sent SET_EXPERIMENT_6 to Veera Kit");
+      }
+
+      // Listen for data from Veera Kit
+      if (window.serialAPI?.onData) {
+        window.serialAPI.onData(data => {
+          console.log("Received data from kit:", data);
+
+          // Handle navigation commands
+          if (data.type === "navigate" && data.target) {
+            window.location.href = data.target;
+            return;
+          }
+
+          // Handle temperature data
+          if (data.temperature !== undefined) {
+            updateTemperatureUI(data.temperature);
+            updateConnectionStatus(true);
+          }
+
+          // Handle sensor readings
+          if (data.sensor === "temperature" && data.value !== undefined) {
+            updateTemperatureUI(data.value);
+            updateConnectionStatus(true);
+          }
+
+          // Handle experiment data
+          if (data.experiment === 6 && data.temp !== undefined) {
+            updateTemperatureUI(data.temp);
+            updateConnectionStatus(true);
+          }
+        });
+      }
+
+      // Check for connection status updates
+      if (window.serialAPI?.onConnectionChange) {
+        window.serialAPI.onConnectionChange(connected => {
+          updateConnectionStatus(connected);
+        });
+      }
+
+      // Request initial temperature reading
+      setTimeout(() => {
+        if (window.serialAPI?.send) {
+          window.serialAPI.send("READ_TEMPERATURE");
+          console.log("Requested temperature reading");
+        }
+      }, 1000);
+
+      // Periodic temperature requests (every 2 seconds)
+      setInterval(() => {
+        if (window.serialAPI?.send && isConnected) {
+          window.serialAPI.send("READ_TEMPERATURE");
+        }
+      }, 2000);
+    });
+
+    // Audio + Lion control
+    const audio = document.getElementById("voice");
+    const lion = document.getElementById("lion");
+    audio.play().catch(() => {
+      document.body.addEventListener("click", () => audio.play(), { once: true });
+    });
+    audio.addEventListener("ended", () => lion.src = "../../assets/images/lion.png");
+
+    // Navigation functions
+    function goHome(){ window.location.href = "../welcome.html"; }
+    function goAchievements(){ window.location.href = "../page4.html"; }
+    function goBack(){ window.history.back(); }
+    function continuePage(){ window.location.href = "C5E6P1.html"; }
+  </script>
+
+  <!-- Keep all existing script files -->
+  <script src="../serial-handler.js"></script>
+  <script src="SerialManager.js"></script>
+  <script src="./backend/experimentControls.js"></script>
+  <script src="../backend/renderer.js"></script>
+
+</body>
+</html>
