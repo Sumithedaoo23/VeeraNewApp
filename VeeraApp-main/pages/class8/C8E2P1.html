@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gas Safety Inspector Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-top: 20px;
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: clamp(8px, 2vw, 12px);
+            z-index: 20;
+        }
+
+        .top-nav img {
+            width: clamp(36px, 8vw, 42px);
+            height: clamp(36px, 8vw, 42px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+            border-radius: 50%;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .top-nav img:hover {
+            transform: scale(1.12);
+            background: rgba(255, 255, 255, 0.35);
+            filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+        }
+
+        .top-nav img:active {
+            transform: scale(0.98);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .score-time-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .gas-display {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .gas-value {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .gas-meter {
+            height: 30px;
+            background: linear-gradient(to right, green, yellow, red);
+            border-radius: 15px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gas-level {
+            height: 100%;
+            width: 0%;
+            background-color: rgba(255, 255, 255, 0.3);
+            transition: width 0.5s;
+        }
+
+        .threshold-markers {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+
+        .system-status {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .status-box {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            flex: 1;
+            margin: 0 5px;
+            text-align: center;
+        }
+
+        .status-value {
+            font-weight: bold;
+            margin-top: 5px;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .normal {
+            background-color: green;
+        }
+
+        .warning {
+            background-color: yellow;
+            color: black;
+        }
+
+        .danger {
+            background-color: red;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .primary-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .secondary-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .danger-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .visualization {
+            height: 200px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gas-particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.7;
+            animation: float 10s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0);
+            }
+
+            25% {
+                transform: translateY(-20px) translateX(10px);
+            }
+
+            50% {
+                transform: translateY(-40px) translateX(0);
+            }
+
+            75% {
+                transform: translateY(-20px) translateX(-10px);
+            }
+
+            100% {
+                transform: translateY(0) translateX(0);
+            }
+        }
+
+        .certification {
+            text-align: center;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .certificate {
+            background-color: #f9f9f9;
+            color: #333;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 10px solid gold;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .certificate h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .certificate p {
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+
+        .instructions {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .instructions h3 {
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            padding: 10px 20px;
+            border: 2px solid white;
+            background-color: transparent;
+            color: white;
+        }
+
+        .mode-btn.active {
+            background-color: white;
+            color: #1a2a6c;
+        }
+
+        .threshold-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .threshold-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .threshold-control input {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .system-status {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .threshold-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        /* Continue Button */
+        .continue-btn {
+            margin-top: clamp(20px, 4vh, 25px);
+            background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+            color: #333;
+            font-weight: bold;
+            font-size: clamp(0.95rem, 2vw, 1.2rem);
+            padding: clamp(12px, 2vw, 16px) clamp(30px, 5vw, 45px);
+            border-radius: 15px;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        }
+
+        .continue-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .continue-btn img {
+            width: clamp(20px, 3vw, 28px);
+            transition: all 0.3s ease;
+        }
+
+        .continue-btn:hover img {
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Gas Leakage monitoring System</h1>
+        <p>Set sensor thresholds and activate ventilation to earn your Safety Certification!</p>
+    </header>
+
+    <div class="top-nav">
+        <img src="../../assets/icons/home.png" alt="Home" onclick="goHome()" title="Home" role="button">
+        <img src="../../assets/icons/achievements.png" alt="Achievements" onclick="goAchievements()"
+            title="Achievements" role="button">
+        <img src="../../assets/icons/logout.png" alt="Go back" onclick="goBack()" title="Back" role="button">
+    </div>
+
+    <div class="container">
+        <div class="score-time-container">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="time">Time: <span id="time">0s</span></div>
+        </div>
+
+        <div class="mode-selector">
+            <button class="mode-btn active" id="practice-btn">Practice Mode</button>
+            <button class="mode-btn" id="challenge-btn">Challenge Mode</button>
+        </div>
+
+        <div class="game-area">
+            <div class="gas-display">
+                <h2>Gas Concentration: <span id="gas-concentration">0</span> ppm</h2>
+                <div class="gas-meter">
+                    <div class="gas-level" id="gas-level"></div>
+                </div>
+                <div class="threshold-markers">
+                    <div>0 ppm</div>
+                    <div id="warning-threshold-display">50 ppm</div>
+                    <div id="danger-threshold-display">80 ppm</div>
+                    <div>100 ppm</div>
+                </div>
+
+                <div class="system-status">
+                    <div class="status-box">
+                        System State:
+                        <div class="status-value normal" id="system-state">NORMAL</div>
+                    </div>
+                    <div class="status-box">
+                        Ventilation:
+                        <div class="status-value" id="ventilation-status">OFF</div>
+                    </div>
+                </div>
+
+                <div class="threshold-controls">
+                    <div class="threshold-control">
+                        <label for="warning-threshold">Warning Threshold (ppm):</label>
+                        <input type="range" id="warning-threshold" min="10" max="70" value="50">
+                        <span id="warning-value">50</span>
+                    </div>
+                    <div class="threshold-control">
+                        <label for="danger-threshold">Danger Threshold (ppm):</label>
+                        <input type="range" id="danger-threshold" min="60" max="100" value="80">
+                        <span id="danger-value">80</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="visualization" id="gas-visualization">
+                <!-- Gas particles will be generated here -->
+            </div>
+
+            <div class="controls">
+                <button class="primary-btn" id="start-btn">START SCENARIO</button>
+                <button class="secondary-btn" id="ventilation-btn">ACTIVATE VENTILATION</button>
+                <button class="danger-btn" id="evacuate-btn">EVACUATE AREA</button>
+                <button class="secondary-btn" id="reset-btn">RESET</button>
+            </div>
+
+            <div class="instructions">
+                <h3>How to Play:</h3>
+                <ul>
+                    <li>Set appropriate warning and danger thresholds for gas concentration</li>
+                    <li>Start the scenario to simulate a gas leak</li>
+                    <li>Activate ventilation when gas levels rise</li>
+                    <li>Evacuate if levels become dangerous</li>
+                    <li>Earn points for quick detection and proper safety procedures</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="certification" id="certification">
+            <div class="certificate">
+                <h2>Gas Safety Inspector Certification</h2>
+                <p>This certifies that</p>
+                <p><strong>Student Name</strong></p>
+                <p>has successfully completed the Gas Safety Inspector Challenge</p>
+                <p>and demonstrated knowledge of gas leak detection and safety procedures.</p>
+                <p>Score: <span id="cert-score">0</span></p>
+                <p>Date: <span id="cert-date"></span></p>
+            </div>
+        </div>
+
+
+        <button class="continue-btn" onclick="navigateToNext()">
+            CONTINUE <img src="../../assets/icons/arrow.png" alt="">
+        </button>
+
+    </div>
+
+    <script>
+        // Game variables
+        let score = 0;
+        let time = 0;
+        let gasConcentration = 0;
+        let gameActive = false;
+        let gameInterval;
+        let timeInterval;
+        let warningThreshold = 50;
+        let dangerThreshold = 80;
+        let ventilationActive = false;
+        let currentMode = 'practice';
+
+        // DOM elements
+        const scoreElement = document.getElementById('score');
+        const timeElement = document.getElementById('time');
+        const gasConcentrationElement = document.getElementById('gas-concentration');
+        const gasLevelElement = document.getElementById('gas-level');
+        const systemStateElement = document.getElementById('system-state');
+        const ventilationStatusElement = document.getElementById('ventilation-status');
+        const startBtn = document.getElementById('start-btn');
+        const ventilationBtn = document.getElementById('ventilation-btn');
+        const evacuateBtn = document.getElementById('evacuate-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const warningThresholdInput = document.getElementById('warning-threshold');
+        const dangerThresholdInput = document.getElementById('danger-threshold');
+        const warningValueElement = document.getElementById('warning-value');
+        const dangerValueElement = document.getElementById('danger-value');
+        const warningThresholdDisplay = document.getElementById('warning-threshold-display');
+        const dangerThresholdDisplay = document.getElementById('danger-threshold-display');
+        const gasVisualization = document.getElementById('gas-visualization');
+        const certificationElement = document.getElementById('certification');
+        const certScoreElement = document.getElementById('cert-score');
+        const certDateElement = document.getElementById('cert-date');
+        const practiceBtn = document.getElementById('practice-btn');
+        const challengeBtn = document.getElementById('challenge-btn');
+
+        // Initialize the game
+        function initGame() {
+            updateDisplay();
+            createGasParticles();
+
+            // Event listeners
+            startBtn.addEventListener('click', startScenario);
+            ventilationBtn.addEventListener('click', toggleVentilation);
+            evacuateBtn.addEventListener('click', evacuateArea);
+            resetBtn.addEventListener('click', resetGame);
+
+            warningThresholdInput.addEventListener('input', updateWarningThreshold);
+            dangerThresholdInput.addEventListener('input', updateDangerThreshold);
+
+            practiceBtn.addEventListener('click', () => switchMode('practice'));
+            challengeBtn.addEventListener('click', () => switchMode('challenge'));
+        }
+
+
+        // Navigation functions
+        function goHome() {
+            window.location.href = "../welcome.html";
+        }
+
+        function goAchievements() {
+            window.location.href = "../page4.html";
+        }
+
+        function goBack() {
+            window.location.href = "./C8E2.html";
+        }
+
+        // function goBack() {
+        //   window.history.back();
+        // }
+
+        function navigateToNext() {
+            window.location.href = "C8E3.html";
+        }
+
+        // Switch between practice and challenge modes
+        function switchMode(mode) {
+            currentMode = mode;
+
+            if (mode === 'practice') {
+                practiceBtn.classList.add('active');
+                challengeBtn.classList.remove('active');
+                document.querySelector('.threshold-controls').style.display = 'flex';
+            } else {
+                practiceBtn.classList.remove('active');
+                challengeBtn.classList.add('active');
+                document.querySelector('.threshold-controls').style.display = 'none';
+
+                // Set fixed thresholds for challenge mode
+                warningThreshold = 50;
+                dangerThreshold = 80;
+                updateThresholdDisplay();
+            }
+
+            resetGame();
+        }
+
+        // Update warning threshold
+        function updateWarningThreshold() {
+            warningThreshold = parseInt(warningThresholdInput.value);
+            if (warningThreshold >= dangerThreshold) {
+                warningThreshold = dangerThreshold - 10;
+                warningThresholdInput.value = warningThreshold;
+            }
+            updateThresholdDisplay();
+        }
+
+        // Update danger threshold
+        function updateDangerThreshold() {
+            dangerThreshold = parseInt(dangerThresholdInput.value);
+            if (dangerThreshold <= warningThreshold) {
+                dangerThreshold = warningThreshold + 10;
+                dangerThresholdInput.value = dangerThreshold;
+            }
+            updateThresholdDisplay();
+        }
+
+        // Update threshold display
+        function updateThresholdDisplay() {
+            warningValueElement.textContent = warningThreshold;
+            dangerValueElement.textContent = dangerThreshold;
+            warningThresholdDisplay.textContent = `${warningThreshold} ppm`;
+            dangerThresholdDisplay.textContent = `${dangerThreshold} ppm`;
+        }
+
+        // Start the scenario
+        function startScenario() {
+            if (gameActive) return;
+
+            gameActive = true;
+            score = 0;
+            time = 0;
+            gasConcentration = 0;
+            ventilationActive = false;
+
+            updateScore();
+            updateTime();
+
+            // Start game interval
+            gameInterval = setInterval(updateGame, 1000);
+            timeInterval = setInterval(updateTimer, 1000);
+
+            startBtn.disabled = true;
+            ventilationBtn.disabled = false;
+            evacuateBtn.disabled = false;
+
+            // Hide certification if showing
+            certificationElement.style.display = 'none';
+        }
+
+        // Update game state
+        function updateGame() {
+            // Increase gas concentration (simulating a leak)
+            let increaseRate = 5 + Math.random() * 10;
+
+            // If ventilation is active, reduce the increase rate
+            if (ventilationActive) {
+                increaseRate -= 8;
+                if (increaseRate < 0) increaseRate = 0;
+            }
+
+            gasConcentration += increaseRate;
+
+            // In challenge mode, gas increases faster
+            if (currentMode === 'challenge') {
+                gasConcentration += 3;
+            }
+
+            // Cap gas concentration at 100
+            if (gasConcentration > 100) {
+                gasConcentration = 100;
+            }
+
+            // Update system state based on gas concentration
+            updateSystemState();
+
+            // Update display
+            updateDisplay();
+
+            // Check for game over conditions
+            if (gasConcentration >= 100) {
+                endGame(false, "Gas concentration reached critical levels!");
+            } else if (gasConcentration >= dangerThreshold && !ventilationActive) {
+                // Lose points if in danger zone without ventilation
+                score -= 5;
+                updateScore();
+            } else if (gasConcentration < warningThreshold && ventilationActive) {
+                // Lose points for unnecessary ventilation
+                score -= 2;
+                updateScore();
+            } else if (gasConcentration >= warningThreshold && gasConcentration < dangerThreshold && ventilationActive) {
+                // Gain points for proper ventilation use
+                score += 3;
+                updateScore();
+            }
+        }
+
+        // Update system state based on gas concentration
+        function updateSystemState() {
+            let stateClass = 'normal';
+            let stateText = 'NORMAL';
+
+            if (gasConcentration >= dangerThreshold) {
+                stateClass = 'danger';
+                stateText = 'DANGER';
+            } else if (gasConcentration >= warningThreshold) {
+                stateClass = 'warning';
+                stateText = 'WARNING';
+            }
+
+            systemStateElement.className = `status-value ${stateClass}`;
+            systemStateElement.textContent = stateText;
+        }
+
+        // Update timer
+        function updateTimer() {
+            time++;
+            updateTime();
+        }
+
+        // Toggle ventilation
+        function toggleVentilation() {
+            ventilationActive = !ventilationActive;
+            ventilationStatusElement.textContent = ventilationActive ? 'ON' : 'OFF';
+            ventilationStatusElement.className = `status-value ${ventilationActive ? 'normal' : ''}`;
+
+            // Add or remove points based on appropriateness
+            if (ventilationActive && gasConcentration >= warningThreshold) {
+                score += 5;
+                updateScore();
+            } else if (ventilationActive && gasConcentration < warningThreshold) {
+                score -= 2;
+                updateScore();
+            }
+        }
+
+        // Evacuate area
+        function evacuateArea() {
+            if (gasConcentration >= dangerThreshold) {
+                score += 10; // Bonus for timely evacuation
+                updateScore();
+                endGame(true, "Area evacuated safely!");
+            } else {
+                score -= 5; // Penalty for unnecessary evacuation
+                updateScore();
+                alert("Unnecessary evacuation! Gas levels are not dangerous.");
+            }
+        }
+
+        // End the game
+        function endGame(success, message) {
+            gameActive = false;
+            clearInterval(gameInterval);
+            clearInterval(timeInterval);
+
+            startBtn.disabled = false;
+            ventilationBtn.disabled = true;
+            evacuateBtn.disabled = true;
+
+            if (success) {
+                // Show certification
+                certScoreElement.textContent = score;
+                certDateElement.textContent = new Date().toLocaleDateString();
+                certificationElement.style.display = 'block';
+
+                alert(`Congratulations! ${message} Your score: ${score}`);
+            } else {
+                alert(`Game Over! ${message} Your score: ${score}`);
+            }
+        }
+
+        // Reset the game
+        function resetGame() {
+            gameActive = false;
+            clearInterval(gameInterval);
+            clearInterval(timeInterval);
+
+            score = 0;
+            time = 0;
+            gasConcentration = 0;
+            ventilationActive = false;
+
+            updateScore();
+            updateTime();
+            updateDisplay();
+
+            startBtn.disabled = false;
+            ventilationBtn.disabled = true;
+            evacuateBtn.disabled = true;
+            ventilationStatusElement.textContent = 'OFF';
+            ventilationStatusElement.className = 'status-value';
+
+            certificationElement.style.display = 'none';
+        }
+
+        // Update display
+        function updateDisplay() {
+            scoreElement.textContent = score;
+            timeElement.textContent = `${time}s`;
+            gasConcentrationElement.textContent = Math.round(gasConcentration);
+            gasLevelElement.style.width = `${gasConcentration}%`;
+
+            // Update gas particle colors
+            updateGasParticles();
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreElement.textContent = score;
+        }
+
+        // Update time display
+        function updateTime() {
+            timeElement.textContent = `${time}s`;
+        }
+
+        // Create gas particles for visualization
+        function createGasParticles() {
+            gasVisualization.innerHTML = '';
+
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'gas-particle';
+
+                // Random position
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+
+                particle.style.left = `${left}%`;
+                particle.style.top = `${top}%`;
+
+                // Random size
+                const size = 5 + Math.random() * 15;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+
+                // Random animation delay
+                particle.style.animationDelay = `${Math.random() * 10}s`;
+
+                gasVisualization.appendChild(particle);
+            }
+
+            updateGasParticles();
+        }
+
+        // Update gas particle colors based on concentration
+        function updateGasParticles() {
+            const particles = document.querySelectorAll('.gas-particle');
+            let color;
+
+            if (gasConcentration < warningThreshold) {
+                color = 'green';
+            } else if (gasConcentration < dangerThreshold) {
+                color = 'yellow';
+            } else {
+                color = 'red';
+            }
+
+            particles.forEach(particle => {
+                particle.style.backgroundColor = color;
+            });
+        }
+
+        // Initialize the game when the page loads
+        window.onload = initGame;
+    </script>
+</body>
+
+</html>

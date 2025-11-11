@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class 8 - IoT Innovator Challenge</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fce53f 0%, #f9a825 40%, #cddc39 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-x: hidden;
+            padding: clamp(15px, 4vw, 30px);
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: clamp(8px, 2vw, 12px);
+            z-index: 20;
+        }
+
+        /* STYLED: For Font Awesome Icons */
+        .nav-icon {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            width: clamp(36px, 8vw, 42px);
+            height: clamp(36px, 8vw, 42px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #4a2c0c; /* Icon color accent */
+        }
+
+        .nav-icon:hover {
+            transform: scale(1.12);
+        }
+
+        h1 {
+            margin-top: clamp(60px, 10vh, 80px);
+            background: rgba(255, 255, 255, 0.15);
+            padding: clamp(12px, 3vw, 15px) clamp(25px, 5vw, 40px);
+            border-radius: 15px;
+            font-size: clamp(1.4rem, 4vw, 2.2rem);
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        .content {
+            margin-top: clamp(30px, 5vh, 40px);
+            display: flex;
+            align-items: flex-start;
+            gap: clamp(20px, 3vw, 40px);
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: clamp(15px, 3vw, 25px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            width: 100%;
+            max-width: 450px;
+            flex-grow: 1;
+        }
+
+        .dashboard-card h2 {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            color: #4a2c0c;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(74, 44, 12, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .sensor-item,
+        .actuator-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: clamp(1rem, 2.5vw, 1.15rem);
+            color: #333;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        .sensor-item span,
+        .actuator-item span {
+            font-weight: bold;
+            color: #004d40;
+        }
+
+        #ir-value.clear {
+            color: #2e7d32;
+        }
+
+        #ir-value.detected {
+            color: #c62828;
+        }
+
+        #fan-status.on {
+            color: #0277bd;
+        }
+
+        #fan-status.off {
+            color: #555;
+        }
+
+        .board-placeholder {
+            width: 100%;
+            height: 200px;
+            border-radius: 10px;
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #444;
+            font-weight: bold;
+            font-style: italic;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(15px, 3vw, 20px);
+            flex-grow: 1;
+            min-width: 300px;
+        }
+
+        .speech {
+            background: linear-gradient(135deg, #00cfff 0%, #0099cc 100%);
+            color: #fff;
+            padding: clamp(15px, 3vw, 25px);
+            border-radius: 20px;
+            font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+            max-width: 400px;
+            width: 100%;
+            min-height: 100px;
+            text-align: center;
+            font-weight: 500;
+            box-shadow: 0 6px 20px rgba(0, 153, 204, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #professor-leo {
+            font-size: clamp(100px, 20vw, 120px);
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+            transition: all 0.3s ease;
+        }
+
+        #professor-leo:hover {
+            transform: scale(1.05);
+        }
+
+        #mini-fan-icon {
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: #ccc;
+            margin-top: -15px;
+            transition: color 0.4s ease;
+        }
+
+        #mini-fan-icon.on {
+            color: #00cfff;
+        }
+
+        .component-icons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .component-icon {
+            width: clamp(60px, 12vw, 70px);
+            height: clamp(60px, 12vw, 70px);
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+        }
+
+        .component-icon:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .continue-btn,
+        #manual-fan-toggle {
+            margin-top: clamp(15px, 2vh, 20px);
+            background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+            color: #333;
+            font-weight: bold;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            padding: clamp(10px, 2vw, 14px) clamp(25px, 5vw, 40px);
+            border-radius: 12px;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .continue-btn:hover,
+        #manual-fan-toggle:hover {
+            transform: translateY(-2px);
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinning {
+            animation: spin 0.8s linear infinite;
+        }
+
+        @media (max-width: 900px) {
+            .content {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .dashboard-card {
+                max-width: 600px;
+            }
+
+            .content-right {
+                width: 100%;
+                max-width: 600px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-nav">
+        <i class="fas fa-home nav-icon" onclick="goHome()" title="Home" role="button"></i>
+        <i class="fas fa-medal nav-icon" onclick="goAchievements()" title="Achievements" role="button"></i>
+        <i class="fas fa-sign-out-alt nav-icon" onclick="goBack()" title="Back" role="button"></i>
+    </div>
+
+    <h1 id="main-title">IoT Innovator Challenge</h1>
+
+    <div class="content">
+        <div class="dashboard-card">
+            <h2>Sensor Data Dashboard 📊</h2>
+            <div class="sensor-item">
+                <label>LDR (Light) Level:</label>
+                <span id="ldr-value">0</span>
+            </div>
+            <div class="sensor-item">
+                <label>IR (Proximity) Status:</label>
+                <span id="ir-value">---</span>
+            </div>
+            <div class="sensor-item">
+                <label>🌡 Temp (C):</label>
+                <span id="temp-value">0.0 °C</span>
+            </div>
+
+            <h2>Actuation Status ⚡</h2>
+            <div class="actuator-item">
+                <label>Servo Motor:</label>
+                <span id="servo-status">Idle</span>
+            </div>
+            <div class="actuator-item">
+                <label>Cooling Fan:</label>
+                <span id="fan-status" class="off">❄ OFF</span>
+            </div>
+
+            <div class="board-placeholder">Veera Circuit Board</div>
+        </div>
+
+        <div class="content-right">
+            <div id="professor-leo">🦁</div>
+            <span id="mini-fan-icon" class="off">🌀</span>
+            <div class="speech" id="speech">Welcome, Innovator! Get ready for the challenge...</div>
+            <button id="manual-fan-toggle" onclick="toggleFanManual()">MANUAL FAN CONTROL: OFF</button>
+
+            <div class="component-icons">
+                <div class="component-icon">LDR Sensor</div>
+                <div class="component-icon">Servo Motor</div>
+                <div class="component-icon">Temp Sensor</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="continue-btn" onclick="navigateToNext()">
+        CONTINUE <i class="fas fa-arrow-circle-right"></i>
+    </button>
+
+    <script>
+        // ==========================================================
+        // FIXED SCOPE ISSUE: Moved navigation functions to global scope
+        // ==========================================================
+        function goHome() {
+            window.location.href = "../welcome.html";
+        }
+
+        function goAchievements() {
+            window.location.href = "../page4.html";
+        }
+
+        function goBack() {
+            window.location.href = "./C8E7P1.html";
+        }
+
+        function navigateToNext() {
+            window.location.href = "C8E8P1.html";
+        }
+        // ==========================================================
+
+        let isManualOverride = false;
+        let isFanOn = false;
+        let currentScenarioIndex = 0;
+
+        // Cached element references (fixes undefined errors)
+        const ldrValueElement = document.getElementById("ldr-value");
+        const tempValueElement = document.getElementById("temp-value");
+        const irValueElement = document.getElementById("ir-value");
+        const servoStatusElement = document.getElementById("servo-status");
+        const fanStatusElement = document.getElementById("fan-status");
+        const miniFanElement = document.getElementById("mini-fan-icon");
+
+        function typewriter(element, text, speed = 50) {
+            if (!element) return;
+            element.innerHTML = "";
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
+        }
+
+        function setFanState(isOn, reason) {
+            isFanOn = isOn;
+            if (isOn) {
+                // FIXED: Template literal syntax corrected (removed the initial quote after ${)
+                fanStatusElement.textContent = `❄ ON (${reason})`;
+                fanStatusElement.className = 'on spinning';
+                miniFanElement.classList.add("on", "spinning");
+            } else {
+                fanStatusElement.textContent = "❄ OFF";
+                fanStatusElement.className = 'off';
+                miniFanElement.classList.remove("on", "spinning");
+            }
+        }
+
+        function toggleFanManual() {
+            const manualButton = document.getElementById("manual-fan-toggle");
+            isManualOverride = !isManualOverride;
+
+            if (isManualOverride) {
+                setFanState(true, "Manual Override");
+                manualButton.textContent = "MANUAL FAN CONTROL: ON";
+                typewriter(document.getElementById("speech"), "Fan is manually controlled! Can you cool the system down? 🥶");
+            } else {
+                manualButton.textContent = "MANUAL FAN CONTROL: OFF";
+                typewriter(document.getElementById("speech"), "Manual control released. Automatic cooling is back online! 🤖");
+                // Recalculate auto-control based on the last known temperature
+                const currentScenario = scenarios[(currentScenarioIndex + scenarios.length - 1) % scenarios.length];
+                autoControlFan(currentScenario.temp);
+            }
+        }
+
+        function autoControlFan(currentTemp) {
+            if (isManualOverride) return;
+            // Fan turns ON if temperature is > 28.0 C
+            if (currentTemp > 28.0) setFanState(true, "Automatic Cooling");
+            else setFanState(false, "System Cool");
+        }
+
+        const scenarios = [
+            { speech: "Professor Leo says: Temperature Alert! System is too hot! 🥵 (Auto-fan should turn ON)", temp: 30.5, light: 50, proximity: "Clear" },
+            { speech: "Object detected! 🚧 The servo needs to clear the path. (IR is triggered)", temp: 25.0, light: 40, proximity: "Object Detected" },
+            { speech: "The light is fading... 🌙 Our solar tracker should seek light. (LDR Low)", temp: 22.0, light: 10, proximity: "Clear" },
+            { speech: "Wow, it's bright! ☀ Max light! The fan is still OFF, as the temperature is fine.", temp: 24.0, light: 95, proximity: "Clear" },
+            { speech: "Everything is normal now. 😌 Low temp, medium light. System Idle.", temp: 23.0, light: 60, proximity: "Clear" }
+        ];
+
+        function runScenario(scenario) {
+            ldrValueElement.textContent = scenario.light;
+            // FIXED: Ensure temp is displayed correctly with decimals
+            tempValueElement.textContent = `${scenario.temp.toFixed(1)} °C`;
+            irValueElement.textContent = scenario.proximity;
+
+            irValueElement.className = (scenario.proximity === "Clear") ? "clear" : "detected";
+
+            if (scenario.light > 75) servoStatusElement.textContent = "Tracking High Light";
+            else if (scenario.light < 20) servoStatusElement.textContent = "Seeking Light";
+            else if (scenario.proximity === "Object Detected") servoStatusElement.textContent = "Moving Barrier";
+            else servoStatusElement.textContent = "Idle";
+
+            autoControlFan(scenario.temp);
+            typewriter(document.getElementById("speech"), scenario.speech, 40);
+        }
+
+        function nextScenario() {
+            runScenario(scenarios[currentScenarioIndex]);
+            currentScenarioIndex = (currentScenarioIndex + 1) % scenarios.length;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Initial call to ensure elements are updated immediately
+            runScenario(scenarios[currentScenarioIndex]);
+            currentScenarioIndex = (currentScenarioIndex + 1) % scenarios.length;
+
+            // Start interval
+            setInterval(nextScenario, 4000);
+        });
+    </script>
+</body>
+
+</html>

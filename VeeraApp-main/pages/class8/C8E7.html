@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Alert Guardian Dashboard 🔔</title>
+  <style>
+    :root{
+      --bg1:#fb923c; /* orange */
+      --bg2:#fcd34d; /* yellow */
+      --bg3:#bef264; /* lime */
+      --card-bg:#ffffff;
+      --muted:#6b7280;
+      --shadow: 0 10px 30px rgba(0,0,0,0.12);
+      --glass: rgba(255,255,255,0.9);
+      --accent-orange: #f97316;
+      --accent-red: #ef4444;
+      --accent-yellow: #f59e0b;
+      --accent-green: #16a34a;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      background: linear-gradient(135deg,var(--bg1), var(--bg2), var(--bg3));
+      color: #0f172a;
+      padding: 28px;
+      box-sizing: border-box;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin: 0 auto;
+    }
+
+    /* Top Navigation */
+    .top-nav {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: clamp(8px, 2vw, 12px);
+      z-index: 20;
+    }
+
+    .top-nav img {
+      width: clamp(36px, 8vw, 42px);
+      height: clamp(36px, 8vw, 42px);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+      border-radius: 50%;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .top-nav img:hover {
+      transform: scale(1.12);
+      background: rgba(255, 255, 255, 0.35);
+      filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+    }
+
+    .top-nav img:active {
+      transform: scale(0.98);
+    }
+
+    /* Header */
+    header{
+      text-align:center;
+      margin-bottom:22px;
+      color: white;
+      text-shadow: 0 3px 10px rgba(0,0,0,0.25);
+    }
+    header h1{
+      font-size: 34px;
+      margin: 0 0 6px;
+      font-weight:700;
+    }
+    header p{
+      margin: 0;
+      opacity: 0.95;
+    }
+    header .sub{
+      margin-top:6px;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    /* Continue Button */
+    .continue-btn {
+      margin-top: clamp(20px, 4vh, 25px);
+      background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+      color: #333;
+      font-weight: bold;
+      font-size: clamp(0.95rem, 2vw, 1.2rem);
+      padding: clamp(12px, 2vw, 16px) clamp(30px, 5vw, 45px);
+      border-radius: 15px;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .continue-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+    }
+
+    .continue-btn:active {
+      transform: translateY(-1px);
+    }
+    
+    .continue-btn img {
+      width: clamp(20px, 3vw, 28px);
+      transition: all 0.3s ease;
+    }
+
+    .continue-btn:hover img {
+      transform: translateX(5px);
+    }
+
+    /* Accessibility */
+    .top-nav img:focus {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+
+    .continue-btn:focus {
+      outline: 2px solid #333;
+      outline-offset: 2px;
+    }
+
+    /* Main card */
+    .card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .card .title {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:18px;
+    }
+    .card .title h2{
+      font-size:20px;
+      margin:0;
+      color: var(--accent-orange);
+    }
+
+    /* Grid */
+    .grid{
+      display:grid;
+      gap:18px;
+    }
+    @media(min-width:840px){
+      .grid.cols-2{ grid-template-columns: repeat(2, 1fr); }
+      .grid.cols-3{ grid-template-columns: repeat(3, 1fr); }
+    }
+    @media(max-width:839px){
+      .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; }
+    }
+
+    /* Sensor cards */
+    .sensor{
+      border-radius: 14px;
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+      border: 2px solid rgba(0,0,0,0.04);
+    }
+
+    .sensor .hdr{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin-bottom:12px;
+    }
+    .sensor .icon{
+      width:46px;
+      height:46px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:20px;
+      color:white;
+      flex-shrink:0;
+    }
+    .sensor h3{ margin:0; font-size:18px; }
+
+    .ldr {
+      background: linear-gradient(180deg,#fffbeb,#fef3c7);
+      border: 2px solid rgba(245,158,11,0.15);
+    }
+    .ldr .icon { background:#f59e0b; }
+
+    .sound {
+      background: linear-gradient(180deg,#fff1f2,#fee2e2);
+      border: 2px solid rgba(239,68,68,0.12);
+    }
+    .sound .icon { background:#ef4444; }
+
+    .big-value{
+      font-size:44px;
+      font-weight:700;
+      margin:0 0 6px 0;
+      color: inherit;
+    }
+    .muted { color: var(--muted); font-size:13px; margin-bottom:10px; }
+
+    /* progress bars */
+    .bar-wrap{
+      background: #e6e7ea;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar{
+      height:12px;
+      width:0%;
+      border-radius:999px;
+      transition: width 600ms ease;
+    }
+    .bar.ldr { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
+    .bar.sound { background: linear-gradient(90deg,#ef4444,#fb7185); }
+
+    .status-line { margin-top:8px; font-size:13px; color:#374151; }
+
+    /* alert block */
+    .alert-block{
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+      border: 2px solid rgba(0,0,0,0.04);
+      background: linear-gradient(90deg,#fff7ed,#fff1f0);
+    }
+    .alert-row{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+    .alert-row .big {
+      font-size:28px;
+      font-weight:700;
+      text-align:center;
+      width:100%;
+    }
+    .alert-desc { text-align:center; color:#374151; font-weight:600; }
+
+    /* buzzer card */
+    .buzzer{
+      border-radius:12px;
+      padding:14px;
+      transition: all 300ms ease;
+      border:2px solid rgba(0,0,0,0.04);
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .buzzer .zap{
+      width:56px;
+      height:56px;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:26px;
+      flex-shrink:0;
+    }
+    .buzzer.inactive { background: linear-gradient(180deg,#ecfdf5,#dcfce7); border-color: rgba(16,185,129,0.15); }
+    .buzzer.inactive .zap { background: #34d399; color:white; }
+
+    .buzzer.active { background: linear-gradient(180deg,#fff1f2,#fee2e2); border-color: rgba(239,68,68,0.15); animation: buzzPulse 1s infinite; }
+    .buzzer.active .zap { background: #ef4444; color:white; box-shadow: 0 6px 18px rgba(239,68,68,0.18); }
+
+    @keyframes buzzPulse {
+      0%{ transform: translateY(0) }
+      50%{ transform: translateY(-3px) scale(1.01) }
+      100%{ transform: translateY(0) }
+    }
+
+    /* How it works and component cards */
+    .how, .components {
+      background: rgba(255,255,255,0.95);
+      border-radius:12px;
+      padding:14px;
+    }
+
+    .how .step{ display:flex; gap:12px; align-items:flex-start; margin-bottom:12px; }
+    .how .step .num{ width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; }
+    .num-1{ background:#f59e0b } .num-2{ background:#ef4444 } .num-3{ background:#3b82f6 }
+
+    .comp-grid{ display:grid; gap:12px; }
+    @media(min-width:840px){ .comp-grid{ grid-template-columns: repeat(3,1fr); } }
+    @media(max-width:839px){ .comp-grid{ grid-template-columns: 1fr; } }
+    .comp{
+      border-radius:10px;
+      padding:12px;
+      text-align:center;
+      border:2px solid rgba(0,0,0,0.04);
+      background: rgba(255,255,255,0.96);
+    }
+    .comp .icon{ font-size:34px; margin-bottom:8px; display:inline-block; padding:6px; border-radius:999px; color:white; }
+    .comp.ldricon{ background:#f59e0b } .comp.soundicon{ background:#ef4444 } .comp.zapicon{ background:#3b82f6 }
+
+    /* small helper */
+    .muted-small { color:#6b7280; font-size:13px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Alert Guardian 🔔</h1>
+      <p>Experiment 7: Smart Environmental Monitor</p>
+      <p class="sub">LDR, Sound Sensor, Buzzer</p>
+    </header>
+
+    <div class="top-nav">
+    <img src="../../assets/icons/home.png" alt="Home" onclick="goHome()" title="Home" role="button">
+    <img src="../../assets/icons/achievements.png" alt="Achievements" onclick="goAchievements()" title="Achievements" role="button">
+    <img src="../../assets/icons/logout.png" alt="Go back" onclick="goBack()" title="Back" role="button">
+  </div>
+
+    <main>
+      <!-- Primary card -->
+      <section class="card">
+        <div class="title">
+          <h2>📊 Sensor Data Dashboard</h2>
+        </div>
+
+        <!-- sensors grid -->
+        <div class="grid cols-2" style="margin-bottom:16px;">
+          <!-- LDR Sensor -->
+          <div class="sensor ldr">
+            <div class="hdr">
+              <div class="icon">💡</div>
+              <div>
+                <h3 style="color:#b45309">LDR Sensor</h3>
+                <div class="muted">Light Detection Resistor</div>
+              </div>
+            </div>
+
+            <div class="big-value" id="ldr-value">65</div>
+            <div class="muted"> (0-100: 0=Darkest, 100=Brightest)</div>
+
+            <div style="height:10px"></div>
+            <div class="bar-wrap" aria-hidden="true">
+              <div id="ldr-bar" class="bar ldr" style="width:65%"></div>
+            </div>
+
+            <div class="status-line" id="ldr-status">Light Intensity: Normal</div>
+          </div>
+
+          <!-- Sound Sensor -->
+          <div class="sensor sound">
+            <div class="hdr">
+              <div class="icon">🔊</div>
+              <div>
+                <h3 style="color:#991b1b">Sound Sensor</h3>
+                <div class="muted">Audio Detection Module</div>
+              </div>
+            </div>
+
+            <div class="big-value" id="sound-value">32</div>
+            <div class="muted"> (0-100: 0=Silent, 100=Loudest)</div>
+
+            <div style="height:10px"></div>
+            <div class="bar-wrap" aria-hidden="true">
+              <div id="sound-bar" class="bar sound" style="width:32%"></div>
+            </div>
+
+            <div class="status-line" id="sound-status">Noise Level: Normal</div>
+          </div>
+        </div>
+
+        <!-- Alert status -->
+        <div class="alert-block" id="alert-panel" style="background: linear-gradient(90deg,#fff7ed,#fff1f0);">
+          <div class="alert-row">
+            <div style="font-size:28px;">⚠</div>
+            <div style="flex:1;">
+              <div class="big" id="alert-status">🟢 SAFE</div>
+              <div class="alert-desc" id="alert-desc">All systems normal</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buzzer -->
+        <div id="buzzer-card" class="buzzer inactive">
+          <div class="zap">⚡</div>
+          <div>
+            <h3 style="margin:0">Buzzer Status</h3>
+            <div style="margin-top:6px;">
+              <p id="buzzer-text" style="font-weight:700; margin:0; color:#16a34a">🔇 Buzzer Inactive</p>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- How it works -->
+      <section class="how card" style="margin-bottom:14px;">
+        <h3 style="margin-top:0">⚙ How It Works</h3>
+        <div style="height:10px"></div>
+
+        <div class="step">
+          <div class="num num-1">1</div>
+          <div>
+            <p style="margin:0; font-weight:700">LDR Sensor detects light</p>
+            <p class="muted-small" style="margin-top:4px">Monitors brightness levels in the environment</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="num num-2">2</div>
+          <div>
+            <p style="margin:0; font-weight:700">Sound Sensor detects noise</p>
+            <p class="muted-small" style="margin-top:4px">Measures sound levels and environmental audio</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="num num-3">3</div>
+          <div>
+            <p style="margin:0; font-weight:700">Buzzer triggers alerts</p>
+            <p class="muted-small" style="margin-top:4px">When thresholds are exceeded, the buzzer activates</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Components -->
+      <section class="components card">
+        <h3 style="margin-top:0">🔧 Components</h3>
+        <div style="height:10px"></div>
+
+        <div class="comp-grid">
+          <div class="comp">
+            <div class="icon ldricon">💡</div>
+            <p style="font-weight:700; margin:8px 0 4px;">LDR Sensor</p>
+            <div class="muted-small">Light Detection Resistor</div>
+          </div>
+
+          <div class="comp">
+            <div class="icon soundicon">🔊</div>
+            <p style="font-weight:700; margin:8px 0 4px;">Sound Sensor</p>
+            <div class="muted-small">Audio Detection Module</div>
+          </div>
+
+          <div class="comp">
+            <div class="icon zapicon">⚡</div>
+            <p style="font-weight:700; margin:8px 0 4px;">Buzzer</p>
+            <div class="muted-small">Alert Output Device</div>
+          </div>
+        </div>
+      </section>
+
+      <button class="continue-btn" onclick="navigateToNext()">
+    CONTINUE <img src="../../assets/icons/arrow.png" alt="">
+  </button>
+    </main>
+  </div>
+
+  <script>
+    // Dashboard state
+    let ldrValue = 65;
+    let soundLevel = 32;
+    let buzzerStatus = false;
+
+    // DOM refs
+    const ldrValueEl = document.getElementById('ldr-value');
+    const soundValueEl = document.getElementById('sound-value');
+    const ldrBarEl = document.getElementById('ldr-bar');
+    const soundBarEl = document.getElementById('sound-bar');
+    const ldrStatusEl = document.getElementById('ldr-status');
+    const soundStatusEl = document.getElementById('sound-status');
+    const alertStatusEl = document.getElementById('alert-status');
+    const alertDescEl = document.getElementById('alert-desc');
+    const buzzerCard = document.getElementById('buzzer-card');
+    const buzzerText = document.getElementById('buzzer-text');
+    const alertPanel = document.getElementById('alert-panel');
+
+    // Return status object similar to React version
+    function getAlertStatus() {
+      if (soundLevel > 60 || ldrValue > 80) {
+        return { status: '🔴 ALERT TRIGGERED', color: 'red', description: 'High levels detected!' };
+      }
+      return { status: '🟢 SAFE', color: 'green', description: 'All systems normal' };
+    }
+
+    // Navigation functions
+    function goHome() {
+      window.location.href = "../welcome.html";
+    }
+
+    function goAchievements() {
+      window.location.href = "../page4.html";
+    }
+
+    function goBack() {
+      window.location.href = "./C8E6P1.html";
+    }
+
+    function navigateToNext() {
+      window.location.href = "C8E7P1.html";
+    }
+
+    // Update UI from state
+    function renderDashboard() {
+      // values
+      ldrValueEl.textContent = ldrValue;
+      soundValueEl.textContent = soundLevel;
+
+      // bars (limit to 0-100)
+      const ldrPct = Math.max(0, Math.min(100, ldrValue));
+      const sndPct = Math.max(0, Math.min(100, soundLevel));
+      ldrBarEl.style.width = ldrPct + '%';
+      soundBarEl.style.width = sndPct + '%';
+
+      // statuses
+      ldrStatusEl.textContent = 'Light Intensity: ' + (ldrValue > 80 ? '⚠ HIGH' : 'Normal');
+      soundStatusEl.textContent = 'Noise Level: ' + (soundLevel > 60 ? '⚠ HIGH' : 'Normal');
+
+      // alert block
+      const alert = getAlertStatus();
+      alertStatusEl.textContent = alert.status;
+      alertDescEl.textContent = alert.description;
+
+      // style alert panel background quickly for visual emphasis
+      if (alert.color === 'red') {
+        alertPanel.style.background = 'linear-gradient(90deg,#ffeef0,#fff1f2)';
+        alertStatusEl.style.color = '#b91c1c';
+      } else {
+        alertPanel.style.background = 'linear-gradient(90deg,#ecfdf5,#dcfce7)';
+        alertStatusEl.style.color = '#065f46';
+      }
+
+      // buzzer
+      buzzerText.textContent = buzzerStatus ? '🔊 BUZZER ACTIVE' : '🔇 Buzzer Inactive';
+      if (buzzerStatus) {
+        buzzerCard.classList.remove('inactive');
+        buzzerCard.classList.add('active');
+      } else {
+        buzzerCard.classList.remove('active');
+        buzzerCard.classList.add('inactive');
+      }
+    }
+
+    // Simulation loop (every 2 seconds) - identical to component behavior
+    function startSimulation() {
+      // initial render
+      renderDashboard();
+
+      setInterval(() => {
+        // random new values 0..99 (as in original)
+        const newLdr = Math.floor(Math.random() * 100);
+        const newSound = Math.floor(Math.random() * 100);
+        ldrValue = newLdr;
+        soundLevel = newSound;
+
+        // buzzer status same condition
+        buzzerStatus = (soundLevel > 60 || ldrValue > 80);
+
+        // smooth small delay to ensure transitions look natural
+        renderDashboard();
+      }, 2000);
+    }
+
+    // Start
+    startSimulation();
+
+    // Accessibility: update values for screen readers if needed
+    // (left intentionally simple — could add aria-live regions if desired)
+  </script>
+</body>
+</html>

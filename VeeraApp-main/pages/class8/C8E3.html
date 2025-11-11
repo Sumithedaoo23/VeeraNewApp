@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrated Energy Control Pilot Dashboard</title>
+    <style>
+        /* --- Base & Background Theme --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #a7f3d0 0%, #87cefa 100%);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+        }
+
+
+        /* Top Navigation */
+        .top-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: clamp(8px, 2vw, 12px);
+            z-index: 20;
+        }
+
+        .top-nav img {
+            width: clamp(36px, 8vw, 42px);
+            height: clamp(36px, 8vw, 42px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+            border-radius: 50%;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .top-nav img:hover {
+            transform: scale(1.12);
+            background: rgba(255, 255, 255, 0.35);
+            filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+        }
+
+        .top-nav img:active {
+            transform: scale(0.98);
+        }
+
+        /* --- Global Header & Layout --- */
+        h1 {
+            background: linear-gradient(90deg, #fff 0%, #2ecc71 100%);
+            padding: 15px 40px;
+            border-radius: 15px;
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            font-weight: 800;
+            margin-top: 20px;
+        }
+
+        .main-container {
+            margin-top: 30px;
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 95%;
+            max-width: 1100px;
+        }
+
+        /* --- TOP NAVIGATION FIX (Matching Round Icons) --- */
+        .top-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+        }
+
+        .nav-icon {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            border-radius: 50%;
+            padding: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            border: 2px solid #f90;
+            background-color: #fce28b;
+        }
+
+        .nav-icon div {
+            font-size: 1.5rem;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- LEFT PANEL: Status Dashboard --- */
+        .status-dashboard {
+            min-width: 350px;
+            max-width: 350px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-heading {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2ecc71;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .sensor-card {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 6px solid #1abc9c;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sensor-card span {
+            font-weight: 600;
+            color: #1abc9c;
+            font-size: 1.1rem;
+        }
+
+        .data-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #333;
+            display: inline-block;
+        }
+
+        .sensor-content-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sensor-image-placeholder {
+            width: 80px;
+            height: 60px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            text-align: center;
+            line-height: 60px;
+            font-size: 0.8rem;
+            color: #555;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+
+        .actuator-status-info {
+            margin-top: 10px;
+            font-size: 0.95rem;
+        }
+
+        #actuator-indicator {
+            font-size: 2.5rem;
+            color: #3498db;
+        }
+
+        .energy-saving-active {
+            color: #2ecc71 !important;
+            animation: pulse-save 1s infinite alternate;
+        }
+
+        @keyframes pulse-save {
+            from {
+                transform: scale(1);
+            }
+
+            to {
+                transform: scale(1.05);
+            }
+        }
+
+        /* --- VEERA BOARD IMAGE FIX --- */
+        .diagram-box {
+            width: 100%;
+            height: 200px;
+            /* Using the uploaded file ID for the Veera Board image (Screenshot 2025-11-07 141123.png) */
+            background: url("uploaded:Screenshot 2025-11-07 141123.png-116e1005-4b08-4171-8745-f092e071e621") no-repeat center center;
+            background-size: cover;
+            border: 5px solid #fff;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- RIGHT PANEL: Controls & Scoring --- */
+        .controls-scoring-panel {
+            flex-grow: 1;
+            min-width: 550px;
+            max-width: 650px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* SCORING & MONITOR STATUS CARD */
+        .score-status-card {
+            background: #e8fff5;
+            border: 2px solid #2ecc71;
+            border-radius: 12px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .monitor-emoji {
+            font-size: 3rem;
+        }
+
+        .load-meter {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 5px;
+            position: relative;
+        }
+
+        #load-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(to right, #2ecc71, #f1c40f);
+            border-radius: 5px;
+            transition: width 0.3s ease-out;
+            position: relative;
+        }
+
+        #risk-zone-mark {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            height: 100%;
+            width: 3px;
+            background-color: #e74c3c;
+            z-index: 10;
+        }
+
+        /* Appliance Grid */
+        .appliance-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .appliance-btn {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 10px 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .appliance-btn h4 {
+            margin-bottom: 5px;
+            font-size: 1em;
+            color: #3498db;
+        }
+
+        .appliance-btn p {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .btn-status {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .btn-status.on {
+            color: #2ecc71;
+        }
+
+        .btn-status.off {
+            color: #e74c3c;
+        }
+
+      /* Continue Button */
+        .continue-btn {
+            margin-top: clamp(20px, 4vh, 25px);
+            background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+            color: #333;
+            font-weight: bold;
+            font-size: clamp(0.95rem, 2vw, 1.2rem);
+            padding: clamp(12px, 2vw, 16px) clamp(30px, 5vw, 45px);
+            border-radius: 15px;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        }
+
+        .continue-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .continue-btn img {
+            width: clamp(20px, 3vw, 28px);
+            transition: all 0.3s ease;
+        }
+
+        .continue-btn:hover img {
+            transform: translateX(5px);
+        }
+
+        /* --- LION MASCOT IMAGE FIX --- */
+        .lion-mascot-img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 10px;
+            /* Using the uploaded file ID for the Lion Mascot image (Screenshot 2025-11-07 141718.jpg) */
+            content: url("uploaded:Screenshot 2025-11-07 141718.jpg-1a426610-d096-4148-9c4c-3965e6481710");
+        }
+
+        .lion {
+            width: 180px;
+            height: 380px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-nav">
+        <img src="../../assets/icons/home.png" alt="Home" onclick="goHome()" title="Home" role="button">
+        <img src="../../assets/icons/achievements.png" alt="Achievements" onclick="goAchievements()"
+            title="Achievements" role="button">
+        <img src="../../assets/icons/logout.png" alt="Go back" onclick="goBack()" title="Back" role="button">
+    </div>
+
+    <h1 id="main-title">🔌 ENERGY CONTROL PILOT : HOME EFFICIENCY 💡</h1>
+
+    <div class="main-container">
+        <div class="status-dashboard">
+            <div class="panel-heading">Energy Status Dashboard 🔋</div>
+
+            <div class="sensor-card">
+                <span>SENSOR READOUT: TIME SINCE PRESENCE (s)</span>
+                <div class="sensor-content-row">
+                    <div class="data-value" id="time-since-presence">0</div>
+                    <div class="sensor-image-placeholder" title="Presence Sensor">[IR/Ultrasonic Sensor]</div>
+                </div>
+                <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">(Threshold for Savings: 30 seconds)</div>
+            </div>
+
+            <div class="sensor-card">
+                <span>SYSTEM STATUS: </span>
+                <div class="data-value" id="system-status">Active</div>
+                <div class="status-alert-text" id="savings-message" style="font-weight: bold; margin-top: 10px;">
+                    Monitoring Consumption...</div>
+            </div>
+
+            <div class="panel-heading">Actuation Status</div>
+
+            <div class="actuator-status-info">
+                <div id="actuator-indicator" style="display:inline-block; margin-right: 10px;">⚡</div>
+                Energy Saver Relay: <span id="actuator-state">Consumption Mode</span>
+            </div>
+
+            <div class="diagram-box">
+                <!-- VEERA IOT BOARD (MICROCONTROLLER) -->
+                <img src="../../assets/images/board.png" alt="Veera Circuit Board" class="board-image"
+                    style=" width: 340px; height: 200px;">
+            </div>
+        </div>
+
+        <div class="controls-scoring-panel">
+
+            <div class="score-status-card">
+                <div style="text-align: center;">
+                    <img class="lion-mascot-img" id="monitor-emoji" alt="Monitor Mascot" />
+                    <div id="efficiency-status-text" style="font-weight: bold;">System is balanced and efficient.</div>
+                </div>
+
+                <div>
+                    <h4 style="color:#00796b;">Current Energy Load: <span id="current-load-display">0</span> kW</h4>
+                    <div class="load-meter">
+                        <div id="load-fill"></div>
+                        <div id="risk-zone-mark"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #333;">
+                        <span>0 kW (Safe)</span>
+                        <span>10 kW (RISK ZONE)</span>
+                        <span>20 kW (MAX)</span>
+                    </div>
+
+                    <h4 style="margin-top: 10px; color:#00796b;">Efficiency Score: <span
+                            id="score-time-display">0.0s</span></h4>
+                </div>
+            </div>
+
+            <h3 class="panel-heading" style="color: #4db6ac;">Appliance Controls (10kW Danger Limit)</h3>
+
+            <div class="appliance-grid">
+                <div class="appliance-btn" onclick="toggleAppliance('ac')" id="ac-card">
+                    <h4>Air Conditioner</h4>
+                    <p class="power-consumption">(Power: 8 kW)</p>
+                    <div class="btn-status off" id="ac-status">OFF</div>
+                </div>
+
+                <div class="appliance-btn" onclick="toggleAppliance('heater')" id="heater-card">
+                    <h4>Water Heater</h4>
+                    <p class="power-consumption">(Power: 5 kW)</p>
+                    <div class="btn-status off" id="heater-status">OFF</div>
+                </div>
+
+                <div class="appliance-btn" onclick="toggleAppliance('lights')" id="lights-card">
+                    <h4>Lights & TV</h4>
+                    <p class="power-consumption">(Power: 2 kW)</p>
+                    <div class="btn-status off" id="lights-status">OFF</div>
+                </div>
+
+                <div class="appliance-btn" onclick="toggleAppliance('fan')" id="fan-card">
+                    <h4>Ventilation Fan</h4>
+                    <p class="power-consumption">(Power: 3 kW)</p>
+                    <div class="btn-status off" id="fan-status">OFF</div>
+                </div>
+
+                <div class="appliance-btn" onclick="toggleAppliance('oven')" id="oven-card">
+                    <h4>Oven</h4>
+                    <p class="power-consumption">(Power: 6 kW)</p>
+                    <div class="btn-status off" id="oven-status">OFF</div>
+                </div>
+
+                <div class="appliance-btn" onclick="resetSystem()" style="background-color: #ff9800; color: white;">
+                    <h4>RESET SYSTEM</h4>
+                    <p class="power-consumption">Turn off all appliances</p>
+                    <div class="btn-status off" style="color:white;">CLICK</div>
+                </div>
+                <img src="../../assets/images/lion.png" alt="Animated lion mascot Veera" class="lion" id="lion">
+            </div>
+        </div>
+    </div>
+
+    <button class="continue-btn" onclick="navigateToNext()">
+        CONTINUE <img src="../../assets/icons/arrow.png" alt="">
+    </button>
+
+    <script>
+        // --- CONFIGURATION ---
+        const MAX_CAPACITY = 20; // kW
+        const DANGER_THRESHOLD = 10; // kW (The red line mark)
+        const SAVE_THRESHOLD_SECONDS = 30;
+        const APPLIANCES = {
+            ac: { power: 8, on: false, status: document.getElementById('ac-status'), card: document.getElementById('ac-card') },
+            heater: { power: 5, on: false, status: document.getElementById('heater-status'), card: document.getElementById('heater-card') },
+            lights: { power: 2, on: false, status: document.getElementById('lights-status'), card: document.getElementById('lights-card') },
+            fan: { power: 3, on: false, status: document.getElementById('fan-status'), card: document.getElementById('fan-card') },
+            oven: { power: 6, on: false, status: document.getElementById('oven-status'), card: document.getElementById('oven-card') }
+        };
+        const GAME_SPEED = 1000; // 1 second per update
+
+        // --- DOM Elements ---
+        const elements = {
+            loadFill: document.getElementById('load-fill'),
+            currentLoadDisplay: document.getElementById('current-load-display'),
+            efficiencyStatusText: document.getElementById('efficiency-status-text'),
+            scoreTimeDisplay: document.getElementById('score-time-display'),
+            timeSincePresence: document.getElementById('time-since-presence'),
+            systemStatus: document.getElementById('system-status'),
+            savingsMessage: document.getElementById('savings-message'),
+            actuatorIndicator: document.getElementById('actuator-indicator'),
+            actuatorState: document.getElementById('actuator-state'),
+            monitorEmoji: document.getElementById('monitor-emoji')
+        };
+
+        // Navigation functions
+        function goHome() {
+            window.location.href = "../welcome.html";
+        }
+
+        function goAchievements() {
+            window.location.href = "../page4.html";
+        }
+
+        function goBack() {
+            window.location.href = "./C8E2P1.html";
+        }
+
+        // function goBack() {
+        //   window.history.back();
+        // }
+
+        function navigateToNext() {
+            window.location.href = "C8E3P1.html";
+        }
+
+        // --- GAME STATE ---
+        let currentLoad = 0;
+        let efficientTimeSeconds = 0;
+        let isOutage = false;
+        let timeSincePresence = 0;
+        let isSaving = false;
+
+        // --- CORE LOGIC: POWER ---
+
+        function calculateLoad() {
+            currentLoad = 0;
+            for (const key in APPLIANCES) {
+                if (APPLIANCES[key].on) {
+                    currentLoad += APPLIANCES[key].power;
+                }
+            }
+
+            // Check for Outage (Overload)
+            const newOutageState = currentLoad > DANGER_THRESHOLD;
+            if (newOutageState !== isOutage) {
+                isOutage = newOutageState;
+            }
+
+            updateMeterVisuals();
+            updateMonitorStatus();
+        }
+
+        function updateMeterVisuals() {
+            elements.currentLoadDisplay.textContent = currentLoad;
+
+            const fillPercent = Math.min(100, (currentLoad / MAX_CAPACITY) * 100);
+            elements.loadFill.style.width = `${fillPercent}%`;
+
+            let loadColor;
+            if (currentLoad > DANGER_THRESHOLD) {
+                loadColor = '#e74c3c'; // Red
+            } else if (currentLoad > (DANGER_THRESHOLD * 0.75)) {
+                loadColor = '#f1c40f'; // Yellow
+            } else {
+                loadColor = '#2ecc71'; // Green
+            }
+            elements.loadFill.style.backgroundColor = loadColor;
+        }
+
+        function updateMonitorStatus() {
+            if (isOutage) {
+                elements.efficiencyStatusText.textContent = "💥 POWER OUTAGE! Reduce Load!";
+                elements.efficiencyStatusText.style.color = '#e74c3c';
+                elements.monitorEmoji.textContent = '😡';
+            } else if (currentLoad > DANGER_THRESHOLD * 0.75) {
+                elements.efficiencyStatusText.textContent = "High Load. Manage Efficiency.";
+                elements.efficiencyStatusText.style.color = '#f1c40f';
+                elements.monitorEmoji.textContent = '😟';
+            } else {
+                elements.efficiencyStatusText.textContent = "System is balanced and efficient.";
+                elements.efficiencyStatusText.style.color = '#00796b';
+                elements.monitorEmoji.textContent = '😊';
+            }
+        }
+
+        function toggleAppliance(applianceKey) {
+            const app = APPLIANCES[applianceKey];
+
+            // Cannot turn on if already in an outage state
+            if (!app.on && isOutage && (currentLoad + app.power) > DANGER_THRESHOLD) {
+                alert(`Cannot turn on ${applianceKey}. System is already in overload! (Load: ${currentLoad}kW)`);
+                return;
+            }
+
+            app.on = !app.on;
+
+            // Update button text and style
+            app.status.textContent = app.on ? "ON" : "OFF";
+            app.status.classList.toggle('on', app.on);
+            app.status.classList.toggle('off', !app.on);
+
+            calculateLoad();
+        }
+        window.toggleAppliance = toggleAppliance;
+
+        // --- CORE LOGIC: PRESENCE & SAVINGS ---
+        function updateSavingsLogic() {
+            // 1. Update time since presence (Simulate detection reset 5% of the time)
+            if (Math.random() < 0.05) {
+                timeSincePresence = 0;
+            } else {
+                timeSincePresence += 1;
+            }
+
+            elements.timeSincePresence.textContent = timeSincePresence;
+
+            const shouldSave = timeSincePresence >= SAVE_THRESHOLD_SECONDS;
+
+            if (shouldSave && !isSaving) {
+                // ACTUATOR ACTION: Activate Energy Saving Mode
+                isSaving = true;
+                elements.systemStatus.textContent = "SAVING";
+                elements.systemStatus.style.color = '#2ecc71';
+                elements.actuatorIndicator.classList.add('energy-saving-active');
+                elements.actuatorState.textContent = "LOW POWER MODE";
+                elements.savingsMessage.textContent = `ENERGY SAVING MODE ACTIVATED!`;
+
+            } else if (!shouldSave && isSaving) {
+                // ACTUATOR ACTION: Return to Normal Consumption
+                isSaving = false;
+                elements.systemStatus.textContent = "Active";
+                elements.systemStatus.style.color = '#e74c3c';
+                elements.actuatorIndicator.classList.remove('energy-saving-active');
+                elements.actuatorState.textContent = "Consumption Mode";
+                elements.savingsMessage.textContent = `Presence Detected. Full Power Restored.`;
+            }
+
+            // 2. Scoring: Only score when load is safe
+            if (!isOutage) {
+                efficientTimeSeconds += 1;
+            }
+            elements.scoreTimeDisplay.textContent = `${efficientTimeSeconds.toFixed(1)}s`;
+        }
+
+        function resetSystem() {
+            // Turn off all active appliances
+            for (const key in APPLIANCES) {
+                if (APPLIANCES[key].on) {
+                    toggleAppliance(key);
+                }
+            }
+            // Reset scoring
+            efficientTimeSeconds = 0;
+            timeSincePresence = 0;
+            isSaving = false;
+            updateSavingsLogic(); // Force status update
+            calculateLoad();
+        }
+        window.resetSystem = resetSystem;
+
+        // --- INITIALIZATION ---
+
+        // Ensure all appliances start OFF
+        for (const key in APPLIANCES) {
+            APPLIANCES[key].on = false;
+        }
+
+        // Start the continuous game timer (1 second per update)
+        setInterval(updateSavingsLogic, GAME_SPEED);
+
+        // Initial state update
+        calculateLoad(); 
+    </script>
+</body>
+
+</html>

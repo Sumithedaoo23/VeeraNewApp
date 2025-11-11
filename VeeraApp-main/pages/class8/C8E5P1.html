@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClimateGuard: Smart Monitor for Material Longevity</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- Base & Background Theme --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            /* Background gradient matching the purple/blue from the image */
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            /* Aligned to the top */
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: clamp(8px, 2vw, 12px);
+            z-index: 20;
+        }
+
+        .top-nav img {
+            width: clamp(36px, 8vw, 42px);
+            height: clamp(36px, 8vw, 42px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+            border-radius: 50%;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .top-nav img:hover {
+            transform: scale(1.12);
+            background: rgba(255, 255, 255, 0.35);
+            filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+        }
+
+        .top-nav img:active {
+            transform: scale(0.98);
+        }
+
+        .game-container {
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* --- Header & Mode Selection FIX --- */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #5a67d8;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .game-mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        /* FIX: Mode Button Styling to match image */
+        .mode-btn {
+            padding: 15px 30px;
+            /* Slightly reduced vertical padding */
+            border: none;
+            border-radius: 50px;
+            /* Highly rounded ends */
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            /* Stronger shadow */
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            max-width: 300px;
+            justify-content: center;
+        }
+
+        .practice-btn {
+            /* Bright Green Gradient */
+            background: linear-gradient(to right, #11998e, #38ef7d);
+            color: white;
+        }
+
+        .challenge-btn {
+            /* Orange/Coral Gradient */
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            color: white;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-3px);
+            /* Less aggressive hover */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .mode-btn:active {
+            transform: translateY(1px);
+        }
+
+        .game-area {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .practice-area,
+        .challenge-area {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* --- Rooms and Condition Styling --- */
+        .rooms-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .room {
+            background: #fff;
+            /* Solid white background */
+            border-radius: 15px;
+            /* Slightly less rounded rooms */
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .room-title {
+            font-size: 1.5rem;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .room-requirements {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 15px;
+            background: #f0f4f7;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        /* Status Tags */
+        .room-status {
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .room-status.normal {
+            background-color: #9ae6b4;
+            color: #1a5633;
+        }
+
+        /* Light Green */
+        .room-status.warning {
+            background-color: #f6e05e;
+            color: #975a16;
+        }
+
+        /* Yellow */
+        .room-status.danger {
+            background-color: #feb2b2;
+            color: #9b2c2c;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Light Red */
+
+        .conditions {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .condition {
+            flex: 1;
+            padding: 10px;
+            background: #fafafa;
+            border-radius: 10px;
+            margin: 0 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .condition-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        /* Value Colors */
+        .normal {
+            color: #38a169;
+        }
+
+        .warning {
+            color: #d69e2e;
+        }
+
+        .danger {
+            color: #e53e3e;
+        }
+
+        /* Health Bar */
+        .health-bar-container {
+            margin: 15px 0;
+        }
+
+        .health-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .health-bar {
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .health-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .health-good {
+            background: linear-gradient(to right, #38a169, #48bb78);
+        }
+
+        .health-warning {
+            background: linear-gradient(to right, #d69e2e, #ecc94b);
+        }
+
+        .health-danger {
+            background: linear-gradient(to right, #e53e3e, #fc8181);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .control-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .temp-up {
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            color: white;
+        }
+
+        .temp-down {
+            background: linear-gradient(to right, #7f7fd5, #86a8e7);
+            color: white;
+        }
+
+        .humidity-up {
+            background: linear-gradient(to right, #11998e, #38ef7d);
+            color: white;
+        }
+
+        .humidity-down {
+            background: linear-gradient(to right, #a8c0ff, #3f2b96);
+            color: white;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Events Panel (Challenge Mode) */
+        .events-panel {
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .events-title {
+            font-size: 1.3rem;
+            color: #d63031;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .event {
+            padding: 12px;
+            background: #fafafa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 5px solid #ccc;
+        }
+
+        .event-warning {
+            border-left-color: #f6e05e;
+        }
+
+        .event-danger {
+            border-left-color: #e53e3e;
+        }
+
+        .back-btn {
+            padding: 12px 25px;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        /* Alerts */
+        .gas-leak-alert,
+        .unlock-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            z-index: 100;
+            display: none;
+            border: 3px solid white;
+            color: white;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .gas-leak-alert {
+            background: linear-gradient(to right, #ff5e62, #ff9966);
+            animation: pulse 1.5s infinite;
+        }
+
+        .unlock-notification {
+            background: linear-gradient(to right, #11998e, #38ef7d);
+            animation: pulse 1.5s infinite;
+        }
+
+        .close-alert,
+        .close-unlock {
+            padding: 12px 25px;
+            background: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        /* Continue Button */
+        .continue-btn {
+            margin-top: clamp(20px, 4vh, 25px);
+            background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+            color: #333;
+            font-weight: bold;
+            font-size: clamp(0.95rem, 2vw, 1.2rem);
+            padding: clamp(12px, 2vw, 16px) clamp(30px, 5vw, 45px);
+            border-radius: 15px;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        }
+
+        .continue-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .continue-btn img {
+            width: clamp(20px, 3vw, 28px);
+            transition: all 0.3s ease;
+        }
+
+        .continue-btn:hover img {
+            transform: translateX(5px);
+        }
+
+        @media (max-width: 768px) {
+            .rooms-container {
+                grid-template-columns: 1fr;
+            }
+
+            .game-mode-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .mode-btn {
+                max-width: 100%;
+            }
+
+            .controls {
+                flex-wrap: wrap;
+            }
+
+            .control-btn {
+                flex: 1 0 45%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <header>
+            <h1><i class="fas fa-shield-alt"></i> ClimateGuard</h1>
+            <div class="subtitle">Smart Monitor for Material Longevity</div>
+            <p>Monitor temperature and humidity to preserve valuable materials in different environments</p>
+        </header>
+
+        <div class="top-nav">
+            <img src="../../assets/icons/home.png" alt="Home" onclick="goHome()" title="Home" role="button">
+            <img src="../../assets/icons/achievements.png" alt="Achievements" onclick="goAchievements()"
+                title="Achievements" role="button">
+            <img src="../../assets/icons/logout.png" alt="Go back" onclick="goBack()" title="Back" role="button">
+        </div>
+
+        <div class="game-mode-selector">
+            <button class="mode-btn practice-btn" id="practiceMode">
+                <i class="fas fa-graduation-cap"></i> Practice Mode
+            </button>
+            <button class="mode-btn challenge-btn" id="challengeMode">
+                <i class="fas fa-trophy"></i> Challenge Mode
+            </button>
+        </div>
+
+        <div class="game-area active" id="practiceArea">
+            <div class="practice-area active">
+                <h2><i class="fas fa-graduation-cap"></i> Practice Mode - Material Preservation</h2>
+                <p>Use the controls to manually adjust conditions and see their effect on material health.</p>
+
+                <div class="rooms-container">
+                    <div class="room">
+                        <div class="room-header">
+                            <div class="room-title">
+                                <i class="fas fa-scroll room-icon"></i> Document Archive
+                            </div>
+                            <div class="room-status normal">STABLE</div>
+                        </div>
+                        <div class="room-requirements">
+                            Optimal: $18^\circ\text{C}-22^\circ\text{C}$, $35\%-45\%$ humidity
+                        </div>
+                        <div class="conditions">
+                            <div class="condition">
+                                <div>Temperature</div>
+                                <div class="condition-value normal" id="docTemp">20°C</div>
+                            </div>
+                            <div class="condition">
+                                <div>Humidity</div>
+                                <div class="condition-value normal" id="docHumidity">40%</div>
+                            </div>
+                        </div>
+                        <div class="health-bar-container">
+                            <div class="health-bar-label">
+                                <span>Document Condition</span>
+                                <span id="docHealthValue">95%</span>
+                            </div>
+                            <div class="health-bar">
+                                <div class="health-bar-fill health-good" id="docHealthBar" style="width: 95%;"></div>
+                            </div>
+                        </div>
+                        <div class="controls">
+                            <button class="control-btn temp-up" data-room="doc" data-action="temp-up">
+                                <i class="fas fa-temperature-high"></i> Temp Up
+                            </button>
+                            <button class="control-btn temp-down" data-room="doc" data-action="temp-down">
+                                <i class="fas fa-temperature-low"></i> Temp Down
+                            </button>
+                            <button class="control-btn humidity-up" data-room="doc" data-action="humidity-up">
+                                <i class="fas fa-tint"></i> Hum Up
+                            </button>
+                            <button class="control-btn humidity-down" data-room="doc" data-action="humidity-down">
+                                <i class="fas fa-wind"></i> Hum Down
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="room">
+                        <div class="room-header">
+                            <div class="room-title">
+                                <i class="fas fa-pills room-icon"></i> Medicine Storage
+                            </div>
+                            <div class="room-status normal">STABLE</div>
+                        </div>
+                        <div class="room-requirements">
+                            Optimal: $15^\circ\text{C}-25^\circ\text{C}$, $45\%-60\%$ humidity
+                        </div>
+                        <div class="conditions">
+                            <div class="condition">
+                                <div>Temperature</div>
+                                <div class="condition-value normal" id="medTemp">20°C</div>
+                            </div>
+                            <div class="condition">
+                                <div>Humidity</div>
+                                <div class="condition-value normal" id="medHumidity">50%</div>
+                            </div>
+                        </div>
+                        <div class="health-bar-container">
+                            <div class="health-bar-label">
+                                <span>Medicine Condition</span>
+                                <span id="medHealthValue">92%</span>
+                            </div>
+                            <div class="health-bar">
+                                <div class="health-bar-fill health-good" id="medHealthBar" style="width: 92%;"></div>
+                            </div>
+                        </div>
+                        <div class="controls">
+                            <button class="control-btn temp-up" data-room="med" data-action="temp-up">
+                                <i class="fas fa-temperature-high"></i> Temp Up
+                            </button>
+                            <button class="control-btn temp-down" data-room="med" data-action="temp-down">
+                                <i class="fas fa-temperature-low"></i> Temp Down
+                            </button>
+                            <button class="control-btn humidity-up" data-room="med" data-action="humidity-up">
+                                <i class="fas fa-tint"></i> Hum Up
+                            </button>
+                            <button class="control-btn humidity-down" data-room="med" data-action="humidity-down">
+                                <i class="fas fa-wind"></i> Hum Down
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="events-panel">
+                    <div class="events-title">
+                        <i class="fas fa-exclamation-triangle"></i> System Events
+                    </div>
+                    <div class="event event-warning">
+                        <i class="fas fa-info-circle"></i> Use the control buttons above to manipulate the temperature
+                        and humidity sensors!
+                    </div>
+                    <div class="event">
+                        <i class="fas fa-check-circle"></i> Health decreases when conditions are outside the optimal
+                        range.
+                    </div>
+                </div>
+
+                <button class="back-btn" id="backFromPractice">
+                    <i class="fas fa-arrow-left"></i> Back to Mode Selection
+                </button>
+            </div>
+        </div>
+
+        <div class="game-area" id="challengeArea">
+            <div class="challenge-area">
+                <h2><i class="fas fa-trophy"></i> Challenge Mode - Preservation Specialist</h2>
+                <p>Manage multiple storage rooms with different requirements. Handle weather changes and system
+                    failures!</p>
+
+                <div class="score-panel">
+                    <div class="score-item">
+                        <div>Preservation Score</div>
+                        <div class="score-value" id="preservationScore">85%</div>
+                    </div>
+                    <div class="score-item">
+                        <div>Energy Efficiency</div>
+                        <div class="score-value" id="energyScore">78%</div>
+                    </div>
+                    <div class="score-item">
+                        <div>Artifacts Saved</div>
+                        <div class="score-value" id="artifactsSaved">12/15</div>
+                    </div>
+                </div>
+
+                <div class="rooms-container">
+                    <div class="room">
+                        <div class="room-header">
+                            <div class="room-title">
+                                <i class="fas fa-scroll room-icon"></i> Document Archive
+                            </div>
+                            <div class="room-status warning">AT RISK</div>
+                        </div>
+                        <div class="room-requirements">
+                            Optimal: $18^\circ\text{C}-22^\circ\text{C}$, $35\%-45\%$ humidity
+                        </div>
+                        <div class="conditions">
+                            <div class="condition">
+                                <div>Temperature</div>
+                                <div class="condition-value warning" id="chDocTemp">25°C</div>
+                            </div>
+                            <div class="condition">
+                                <div>Humidity</div>
+                                <div class="condition-value warning" id="chDocHumidity">50%</div>
+                            </div>
+                        </div>
+                        <div class="health-bar-container">
+                            <div class="health-bar-label">
+                                <span>Document Condition</span>
+                                <span id="chDocHealthValue">75%</span>
+                            </div>
+                            <div class="health-bar">
+                                <div class="health-bar-fill health-warning" id="chDocHealthBar" style="width: 75%;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="controls">
+                            <button class="control-btn temp-up" data-room="chDoc" data-action="temp-up">
+                                <i class="fas fa-temperature-high"></i> Temp Up
+                            </button>
+                            <button class="control-btn temp-down" data-room="chDoc" data-action="temp-down">
+                                <i class="fas fa-temperature-low"></i> Temp Down
+                            </button>
+                            <button class="control-btn humidity-up" data-room="chDoc" data-action="humidity-up">
+                                <i class="fas fa-tint"></i> Hum Up
+                            </button>
+                            <button class="control-btn humidity-down" data-room="chDoc" data-action="humidity-down">
+                                <i class="fas fa-wind"></i> Hum Down
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="room">
+                        <div class="room-header">
+                            <div class="room-title">
+                                <i class="fas fa-monument room-icon"></i> Artifact Vault
+                            </div>
+                            <div class="room-status danger">DEGRADING</div>
+                        </div>
+                        <div class="room-requirements">
+                            Optimal: $19^\circ\text{C}-21^\circ\text{C}$, $40\%-50\%$ humidity
+                        </div>
+                        <div class="conditions">
+                            <div class="condition">
+                                <div>Temperature</div>
+                                <div class="condition-value danger" id="artTemp">28°C</div>
+                            </div>
+                            <div class="condition">
+                                <div>Humidity</div>
+                                <div class="condition-value danger" id="artHumidity">65%</div>
+                            </div>
+                        </div>
+                        <div class="health-bar-container">
+                            <div class="health-bar-label">
+                                <span>Artifact Condition</span>
+                                <span id="artHealthValue">45%</span>
+                            </div>
+                            <div class="health-bar">
+                                <div class="health-bar-fill health-danger" id="artHealthBar" style="width: 45%;"></div>
+                            </div>
+                        </div>
+                        <div class="controls">
+                            <button class="control-btn temp-up" data-room="art" data-action="temp-up">
+                                <i class="fas fa-temperature-high"></i> Temp Up
+                            </button>
+                            <button class="control-btn temp-down" data-room="art" data-action="temp-down">
+                                <i class="fas fa-temperature-low"></i> Temp Down
+                            </button>
+                            <button class="control-btn humidity-up" data-room="art" data-action="humidity-up">
+                                <i class="fas fa-tint"></i> Hum Up
+                            </button>
+                            <button class="control-btn humidity-down" data-room="art" data-action="humidity-down">
+                                <i class="fas fa-wind"></i> Hum Down
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="events-panel">
+                    <div class="events-title">
+                        <i class="fas fa-exclamation-triangle"></i> Emergency Events
+                    </div>
+                    <div class="event event-danger">
+                        <i class="fas fa-exclamation-circle"></i> AC SYSTEM FAILURE in Artifact Vault!
+                    </div>
+                    <div class="event event-warning">
+                        <i class="fas fa-cloud-sun-rain"></i> Heat wave affecting all rooms - temperatures rising
+                    </div>
+                </div>
+
+                <button class="back-btn" id="backFromChallenge">
+                    <i class="fas fa-arrow-left"></i> Back to Mode Selection
+                </button>
+            </div>
+        </div>
+
+        <div class="gas-leak-alert" id="gasLeakAlert">
+            <h2><i class="fas fa-radiation-alt"></i> SYSTEM ALERT!</h2>
+            <p>Refrigerant leak detected! Actuators must be shut down.</p>
+            <button class="close-alert" id="closeGasAlert">Acknowledge Alert</button>
+        </div>
+
+        <div class="unlock-notification" id="unlockNotification">
+            <h2><i class="fas fa-lock-open"></i> NEW STORAGE UNLOCKED!</h2>
+            <p>You've earned the Electronics Storage certification!</p>
+            <button class="close-unlock" id="closeUnlock">Continue</button>
+        </div>
+
+        <button class="continue-btn" onclick="navigateToNext()">
+            CONTINUE <img src="../../assets/icons/arrow.png" alt="">
+        </button>
+
+    </div>
+
+    <script>
+        // Game state and logic from previous step, ensuring interactivity
+
+        // Game state (Using health values from the image provided in the prompt)
+        const gameState = {
+            practice: {
+                doc: { temp: 20, humidity: 38, health: 100 }, // Health changed to 100% to reflect initial stable state
+                med: { temp: 20, humidity: 50, health: 92 }
+            },
+            challenge: {
+                doc: { temp: 25, humidity: 50, health: 75 },
+                art: { temp: 28, humidity: 65, health: 45 }
+            },
+            scores: {
+                preservation: 85,
+                energy: 78,
+                artifacts: 12
+            },
+            unlocked: false
+        };
+
+        // Navigation functions
+        function goHome() {
+            window.location.href = "../welcome.html";
+        }
+
+        function goAchievements() {
+            window.location.href = "../page4.html";
+        }
+
+        function goBack() {
+            window.location.href = "./C8E5.html";
+        }
+
+        function navigateToNext() {
+            window.location.href = "C8E6.html";
+        }
+
+        // DOM elements
+        const practiceModeBtn = document.getElementById('practiceMode');
+        const challengeModeBtn = document.getElementById('challengeMode');
+        const practiceArea = document.getElementById('practiceArea');
+        const challengeArea = document.getElementById('challengeArea');
+        const backFromPractice = document.getElementById('backFromPractice');
+        const backFromChallenge = document.getElementById('backFromChallenge');
+        const gasLeakAlert = document.getElementById('gasLeakAlert');
+        const closeGasAlert = document.getElementById('closeGasAlert');
+        const unlockNotification = document.getElementById('unlockNotification');
+        const closeUnlock = document.getElementById('closeUnlock');
+
+        // Event listeners for mode selection
+        practiceModeBtn.addEventListener('click', function () {
+            practiceArea.style.display = 'block';
+            challengeArea.style.display = 'none';
+            updatePracticeDisplay();
+            // Hide selection buttons
+            document.querySelector('.game-mode-selector').style.display = 'none';
+            document.querySelector('header p:nth-child(3)').style.display = 'none'; // Hide the general paragraph
+        });
+
+        challengeModeBtn.addEventListener('click', function () {
+            challengeArea.style.display = 'block';
+            practiceArea.style.display = 'none';
+            updateChallengeDisplay();
+            // Hide selection buttons
+            document.querySelector('.game-mode-selector').style.display = 'none';
+            document.querySelector('header p:nth-child(3)').style.display = 'none'; // Hide the general paragraph
+
+            // Random chance for gas leak in challenge mode
+            if (Math.random() > 0.7) {
+                setTimeout(() => {
+                    gasLeakAlert.style.display = 'block';
+                }, 2000);
+            }
+
+            // Check if player has unlocked new storage
+            if (gameState.scores.artifacts >= 15 && !gameState.unlocked) {
+                setTimeout(() => {
+                    unlockNotification.style.display = 'block';
+                    gameState.unlocked = true;
+                }, 3000);
+            }
+        });
+
+        backFromPractice.addEventListener('click', function () {
+            practiceArea.style.display = 'none';
+            document.querySelector('.game-mode-selector').style.display = 'flex';
+            document.querySelector('header p:nth-child(3)').style.display = 'block';
+        });
+
+        backFromChallenge.addEventListener('click', function () {
+            challengeArea.style.display = 'none';
+            document.querySelector('.game-mode-selector').style.display = 'flex';
+            document.querySelector('header p:nth-child(3)').style.display = 'block';
+            gasLeakAlert.style.display = 'none';
+        });
+
+        closeGasAlert.addEventListener('click', function () {
+            gasLeakAlert.style.display = 'none';
+        });
+
+        closeUnlock.addEventListener('click', function () {
+            unlockNotification.style.display = 'none';
+        });
+
+        // Control button handlers
+        document.querySelectorAll('.control-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const roomElement = this.getAttribute('data-room');
+                const action = this.getAttribute('data-action');
+
+                if (practiceArea.style.display === 'block') {
+                    handlePracticeControl(roomElement, action);
+                } else {
+                    handleChallengeControl(roomElement, action);
+                }
+            });
+        });
+
+        function handlePracticeControl(roomElement, action) {
+            const roomState = gameState.practice[roomElement];
+
+            switch (action) {
+                case 'temp-up':
+                    roomState.temp = Math.min(30, roomState.temp + 1);
+                    break;
+                case 'temp-down':
+                    roomState.temp = Math.max(15, roomState.temp - 1);
+                    break;
+                case 'humidity-up':
+                    roomState.humidity = Math.min(80, roomState.humidity + 2);
+                    break;
+                case 'humidity-down':
+                    roomState.humidity = Math.max(20, roomState.humidity - 2);
+                    break;
+            }
+
+            // Update health based on conditions
+            updateRoomHealth(roomState, roomElement);
+            updatePracticeDisplay();
+        }
+
+        function handleChallengeControl(roomElement, action) {
+            const roomState = gameState.challenge[roomElement];
+
+            switch (action) {
+                case 'temp-up':
+                    roomState.temp = Math.min(30, roomState.temp + 1);
+                    break;
+                case 'temp-down':
+                    roomState.temp = Math.max(15, roomState.temp - 1);
+                    break;
+                case 'humidity-up':
+                    roomState.humidity = Math.min(80, roomState.humidity + 2);
+                    break;
+                case 'humidity-down':
+                    roomState.humidity = Math.max(20, roomState.humidity - 2);
+                    break;
+            }
+
+            // Update health based on conditions
+            updateRoomHealth(roomState, roomElement);
+
+            // Random events in challenge mode (to make conditions drift)
+            if (Math.random() > 0.8) {
+                if (Math.random() > 0.5) {
+                    roomState.temp += (Math.random() > 0.5 ? 2 : -2); // Random temp spike/drop
+                } else {
+                    roomState.humidity += (Math.random() > 0.5 ? 5 : -5); // Random humidity spike/drop
+                }
+            }
+
+            updateScores();
+            updateChallengeDisplay();
+        }
+
+        function updateRoomHealth(roomState, roomType) {
+            let tempScore = 100;
+            let humidityScore = 100;
+
+            // --- Document/ChDoc (18-22°C, 35-45% H) ---
+            if (roomType === 'doc' || roomType === 'chDoc') {
+                if (roomState.temp < 18 || roomState.temp > 22) tempScore = 70;
+                if (roomState.temp < 15 || roomState.temp > 25) tempScore = 40;
+                if (roomState.temp < 10 || roomState.temp > 30) tempScore = 10;
+
+                if (roomState.humidity < 35 || roomState.humidity > 45) humidityScore = 70;
+                if (roomState.humidity < 25 || roomState.humidity > 55) humidityScore = 40;
+                if (roomState.humidity < 15 || roomState.humidity > 65) humidityScore = 10;
+
+                // --- Medicine (15-25°C, 45-60% H) ---
+            } else if (roomType === 'med') {
+                if (roomState.temp < 15 || roomState.temp > 25) tempScore = 70;
+                if (roomState.temp < 10 || roomState.temp > 30) tempScore = 40;
+
+                if (roomState.humidity < 45 || roomState.humidity > 60) humidityScore = 70;
+                if (roomState.humidity < 35 || roomState.humidity > 70) humidityScore = 40;
+
+                // --- Artifact (19-21°C, 40-50% H) ---
+            } else if (roomType === 'art') {
+                if (roomState.temp < 19 || roomState.temp > 21) tempScore = 70;
+                if (roomState.temp < 17 || roomState.temp > 23) tempScore = 40;
+
+                if (roomState.humidity < 40 || roomState.humidity > 50) humidityScore = 70;
+                if (roomState.humidity < 30 || roomState.humidity > 60) humidityScore = 40;
+            }
+
+            // Calculate overall health (average of temp and humidity scores)
+            roomState.health = Math.round((tempScore + humidityScore) / 2);
+            roomState.health = Math.max(0, roomState.health);
+        }
+
+        function updateScores() {
+            const docHealth = gameState.challenge.doc.health;
+            const artHealth = gameState.challenge.art.health;
+            gameState.scores.preservation = Math.round((docHealth + artHealth) / 2);
+
+            gameState.scores.energy = Math.max(50, gameState.scores.energy - 1); // Mock decrease
+
+            if (gameState.challenge.art.health > 80 && gameState.scores.artifacts < 15) {
+                gameState.scores.artifacts = Math.min(15, gameState.scores.artifacts + 1);
+            }
+        }
+
+        function updateRoomDisplay(roomElement, health, mode) {
+            const roomPrefix = mode === 'practice' ? roomElement : roomElement;
+            const statusDiv = document.querySelector(`#${mode === 'practice' ? 'practiceArea' : 'challengeArea'} [data-room="${roomElement}"] .room-status`);
+            const tempValue = document.getElementById(roomPrefix + 'Temp');
+            const humidityValue = document.getElementById(roomPrefix + 'Humidity');
+            const healthBar = document.getElementById(roomPrefix + 'HealthBar');
+            const healthValue = document.getElementById(roomPrefix + 'HealthValue');
+
+            // Update data values
+            tempValue.textContent = `${gameState[mode][roomElement].temp}°C`;
+            humidityValue.textContent = `${gameState[mode][roomElement].humidity}%`;
+            healthValue.textContent = `${health}%`;
+            healthBar.style.width = `${health}%`;
+
+            // Update status text and colors
+            statusDiv.classList.remove('normal', 'warning', 'danger');
+            healthBar.classList.remove('health-good', 'health-warning', 'health-danger');
+
+            if (health >= 85) {
+                statusDiv.textContent = 'STABLE';
+                statusDiv.classList.add('normal');
+                healthBar.classList.add('health-good');
+            } else if (health >= 60) {
+                statusDiv.textContent = 'AT RISK';
+                statusDiv.classList.add('warning');
+                healthBar.classList.add('health-warning');
+            } else {
+                statusDiv.textContent = 'DEGRADING';
+                statusDiv.classList.add('danger');
+                healthBar.classList.add('health-danger');
+            }
+        }
+
+        // Aliases for initial load
+        function updatePracticeDisplay() {
+            updateRoomDisplay('doc', gameState.practice.doc.health, 'practice');
+            updateRoomDisplay('med', gameState.practice.med.health, 'practice');
+        }
+        function updateChallengeDisplay() {
+            updateRoomDisplay('chDoc', gameState.challenge.doc.health, 'challenge');
+            updateRoomDisplay('art', gameState.challenge.art.health, 'challenge');
+
+            // Update scores panel explicitly
+            document.getElementById('preservationScore').textContent = `${gameState.scores.preservation}%`;
+            document.getElementById('energyScore').textContent = `${gameState.scores.energy}%`;
+            document.getElementById('artifactsSaved').textContent = `${gameState.scores.artifacts}/15`;
+        }
+
+        // Initialize the display
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start in selection view
+            practiceArea.style.display = 'none';
+            challengeArea.style.display = 'none';
+            document.querySelector('.game-mode-selector').style.display = 'flex';
+            document.querySelector('header p:nth-child(3)').style.display = 'block';
+
+            // Initial calculation of displayed values
+            updateRoomHealth(gameState.practice.doc, 'doc');
+            updateRoomHealth(gameState.practice.med, 'med');
+            updateRoomHealth(gameState.challenge.doc, 'chDoc');
+            updateRoomHealth(gameState.challenge.art, 'art');
+        });
+
+    </script>
+</body>
+
+</html>

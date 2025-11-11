@@ -1,0 +1,1076 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Condition Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeIn 1s ease-out;
+        }
+
+        /* Top Navigation */
+    .top-nav {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: clamp(8px, 2vw, 12px);
+      z-index: 20;
+    }
+
+    .top-nav img {
+      width: clamp(36px, 8vw, 42px);
+      height: clamp(36px, 8vw, 42px);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+      border-radius: 50%;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .top-nav img:hover {
+      transform: scale(1.12);
+      background: rgba(255, 255, 255, 0.35);
+      filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+    }
+
+    .top-nav img:active {
+      transform: scale(0.98);
+    }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #12c2e9, #c471ed, #f64f59);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 10%;
+            width: 80%;
+            height: 4px;
+            background: linear-gradient(to right, #12c2e9, #c471ed, #f64f59);
+            border-radius: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            color: #a0d2ff;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #7fdbff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        h2 i {
+            font-size: 1.5rem;
+        }
+        
+        .sensor-status, .material-status {
+            text-align: center;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 15px 0;
+            transition: all 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sensor-status {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+        }
+        
+        .material-status {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+        
+        .status-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 15px 0;
+            transition: all 0.5s ease;
+        }
+        
+        .normal {
+            color: #38ef7d;
+        }
+        
+        .warning {
+            color: #ffcc00;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .danger {
+            color: #ff5e62;
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .material-info {
+            margin-top: 20px;
+            font-size: 0.95rem;
+            color: #ccc;
+            line-height: 1.5;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(to right, #7f7fd5, #86a8e7, #91eae4);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(to right, #ff5e62, #ff9966);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(2px);
+        }
+        
+        .logic-box {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 25px;
+            border-left: 5px solid #ffcc00;
+        }
+        
+        .logic-title {
+            font-weight: bold;
+            color: #ffcc00;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logic-rule {
+            margin: 12px 0;
+            padding-left: 20px;
+            border-left: 3px solid #ffcc00;
+            transition: all 0.3s ease;
+        }
+        
+        .logic-rule:hover {
+            background: rgba(255, 255, 255, 0.05);
+            padding-left: 25px;
+        }
+        
+        .assistant {
+            text-align: center;
+            margin: 25px 0;
+            padding: 20px;
+            background: rgba(127, 219, 255, 0.15);
+            border-radius: 15px;
+            border: 1px solid rgba(127, 219, 255, 0.3);
+        }
+        
+        .assistant-name {
+            font-weight: bold;
+            color: #7fdbff;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+        
+        .project-goal {
+            font-size: 1.1rem;
+            color: #a0d2ff;
+        }
+        
+        .settings {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .setting-btn {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .setting-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+        }
+        
+        .continue-btn {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(to right, #11998e, #38ef7d);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .continue-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .material-icons {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .material-icon {
+            font-size: 3rem;
+            transition: all 0.3s ease;
+        }
+        
+        .material-icon:hover {
+            transform: scale(1.2) rotate(10deg);
+        }
+        
+        .wood { color: #cd853f; }
+        .metal { color: #c0c0c0; }
+        .plastic { color: #1e90ff; }
+        
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        .gauge-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        
+        .gauge {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#38ef7d 0% 30%, #ffcc00 30% 70%, #ff5e62 70% 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .gauge-inner {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .gauge-label {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .history-chart {
+            height: 100px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-line {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 2px;
+            background: #12c2e9;
+        }
+
+        /* Continue Button */
+    .continue-btn {
+      margin-top: clamp(20px, 4vh, 25px);
+      background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+      color: #333;
+      font-weight: bold;
+      font-size: clamp(0.95rem, 2vw, 1.2rem);
+      padding: clamp(12px, 2vw, 16px) clamp(30px, 5vw, 45px);
+      border-radius: 15px;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .continue-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+    }
+
+    .continue-btn:active {
+      transform: translateY(-1px);
+    }
+    
+    .continue-btn img {
+      width: clamp(20px, 3vw, 28px);
+      transition: all 0.3s ease;
+    }
+
+    .continue-btn:hover img {
+      transform: translateX(5px);
+    }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+        /* Accessibility */
+    .top-nav img:focus {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+
+    .continue-btn:focus {
+      outline: 2px solid #333;
+      outline-offset: 2px;
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-vial"></i> MATERIAL CONDITION TRACKER</h1>
+            <div class="subtitle">Real-time Monitoring of Environmental Effects on Materials</div>
+        </header>
+
+        <div class="top-nav">
+    <img src="../../assets/icons/home.png" alt="Home" onclick="goHome()" title="Home" role="button">
+    <img src="../../assets/icons/achievements.png" alt="Achievements" onclick="goAchievements()" title="Achievements" role="button">
+    <img src="../../assets/icons/logout.png" alt="Go back" onclick="goBack()" title="Back" role="button">
+  </div>
+        
+        <div class="assistant">
+            <div class="assistant-name"><i class="fas fa-robot"></i> MATERIAL GUARDIAN - Your Science Assistant</div>
+            <div class="project-goal">PROJECT GOAL: PRESERVE MATERIAL HEALTH & DURABILITY</div>
+        </div>
+        
+        <div class="material-icons">
+            <div class="material-icon wood"><i class="fas fa-tree"></i></div>
+            <div class="material-icon metal"><i class="fas fa-cog"></i></div>
+            <div class="material-icon plastic"><i class="fas fa-wine-bottle"></i></div>
+        </div>
+        
+        <div class="content">
+            <div class="panel">
+                <h2><i class="fas fa-thermometer-half"></i> Environmental Sensors</h2>
+                
+                <div class="gauge-container">
+                    <div class="gauge-wrapper">
+                        <div class="gauge">
+                            <div class="gauge-inner">
+                                <span id="tempValue">24°C</span>
+                            </div>
+                        </div>
+                        <div class="gauge-label">TEMPERATURE</div>
+                    </div>
+                    
+                    <div class="gauge-wrapper">
+                        <div class="gauge">
+                            <div class="gauge-inner">
+                                <span id="humidityValue">45%</span>
+                            </div>
+                        </div>
+                        <div class="gauge-label">HUMIDITY</div>
+                    </div>
+                </div>
+                
+                <div class="history-chart">
+                    <div class="chart-line"></div>
+                </div>
+                
+                <div class="material-info">
+                    <i class="fas fa-info-circle"></i> Sensors continuously monitor environmental conditions that affect material integrity.
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2><i class="fas fa-clipboard-check"></i> Material Health Status</h2>
+                <div class="material-status">
+                    <div>WOOD CONDITION</div>
+                    <div class="status-value normal" id="woodStatus">HEALTHY</div>
+                    <div>METAL CONDITION</div>
+                    <div class="status-value normal" id="metalStatus">STABLE</div>
+                    <div>PLASTIC CONDITION</div>
+                    <div class="status-value normal" id="plasticStatus">GOOD</div>
+                </div>
+                <div class="material-info">
+                    <i class="fas fa-info-circle"></i> Shows how different materials respond to current environmental conditions.
+                </div>
+            </div>
+        </div>
+        
+        <div class="logic-box">
+            <div class="logic-title"><i class="fas fa-brain"></i> MATERIAL HEALTH LOGIC (The Rules)</div>
+            <div class="logic-rule">— IF Temp > 30°C OR Humidity > 70% → THEN Wood = AT RISK (Expansion/Mold)</div>
+            <div class="logic-rule">— IF Temp < 10°C OR Humidity < 30% → THEN Wood = AT RISK (Contraction/Cracking)</div>
+            <div class="logic-rule">— IF Humidity > 60% → THEN Metal = AT RISK (Corrosion)</div>
+            <div class="logic-rule">— IF Temp > 40°C → THEN Plastic = AT RISK (Deformation)</div>
+            <div class="logic-rule">— IF Conditions Normal → THEN All Materials = HEALTHY</div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" id="increaseTemp">
+                <i class="fas fa-temperature-high"></i> Increase Temperature
+            </button>
+            <button class="btn btn-primary" id="increaseHumidity">
+                <i class="fas fa-tint"></i> Increase Humidity
+            </button>
+            <button class="btn btn-danger" id="extremeConditions">
+                <i class="fas fa-exclamation-triangle"></i> Extreme Conditions
+            </button>
+            <button class="btn btn-secondary" id="resetConditions">
+                <i class="fas fa-redo"></i> Reset to Normal
+            </button>
+        </div>
+        
+        <div class="settings">
+            <button class="setting-btn">
+                <i class="fas fa-sliders-h"></i> Material Type
+            </button>
+            <button class="setting-btn">
+                <i class="fas fa-bell"></i> Alert Threshold
+            </button>
+            <button class="setting-btn">
+                <i class="fas fa-chart-line"></i> Data Log
+            </button>
+        </div>
+        
+        <button class="continue-btn" onclick="navigateToNext()">
+    CONTINUE <img src="../../assets/icons/arrow.png" alt="">
+  </button>
+        
+        <footer>
+            <p>Material Condition Tracker - Grade 8 Science Project | Designed for Educational Purposes</p>
+        </footer>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const tempValue = document.getElementById('tempValue');
+        const humidityValue = document.getElementById('humidityValue');
+        const woodStatus = document.getElementById('woodStatus');
+        const metalStatus = document.getElementById('metalStatus');
+        const plasticStatus = document.getElementById('plasticStatus');
+        
+        const increaseTempBtn = document.getElementById('increaseTemp');
+        const increaseHumidityBtn = document.getElementById('increaseHumidity');
+        const extremeConditionsBtn = document.getElementById('extremeConditions');
+        const resetConditionsBtn = document.getElementById('resetConditions');
+        
+        // Initial values
+        let temperature = 24;
+        let humidity = 45;
+        
+        // Update display
+        function updateDisplay() {
+            tempValue.textContent = `${temperature}°C`;
+            humidityValue.textContent = `${humidity}%`;
+            
+            // Update material status
+            updateMaterialStatus();
+            
+            // Update gauge visualization
+            updateGauges();
+        }
+
+        // Navigation functions
+    function goHome() {
+      window.location.href = "../welcome.html";
+    }
+
+    function goAchievements() {
+      window.location.href = "../page4.html";
+    }
+
+    function goBack() {
+      window.location.href = "./C8E4P1.html";
+    }
+
+    function navigateToNext() {
+      window.location.href = "C8E5P1.html";
+    }
+        
+        function updateMaterialStatus() {
+            // Wood status
+            if (temperature > 30 || humidity > 70 || temperature < 10 || humidity < 30) {
+                woodStatus.textContent = 'AT RISK';
+                woodStatus.className = 'status-value danger';
+            } else if (temperature > 27 || humidity > 60 || temperature < 15 || humidity < 40) {
+                woodStatus.textContent = 'WARNING';
+                woodStatus.className = 'status-value warning';
+            } else {
+                woodStatus.textContent = 'HEALTHY';
+                woodStatus.className = 'status-value normal';
+            }
+            
+            // Metal status
+            if (humidity > 60) {
+                metalStatus.textContent = 'AT RISK';
+                metalStatus.className = 'status-value danger';
+            } else if (humidity > 50) {
+                metalStatus.textContent = 'WARNING';
+                metalStatus.className = 'status-value warning';
+            } else {
+                metalStatus.textContent = 'STABLE';
+                metalStatus.className = 'status-value normal';
+            }
+            
+            // Plastic status
+            if (temperature > 40) {
+                plasticStatus.textContent = 'AT RISK';
+                plasticStatus.className = 'status-value danger';
+            } else if (temperature > 35) {
+                plasticStatus.textContent = 'WARNING';
+                plasticStatus.className = 'status-value warning';
+            } else {
+                plasticStatus.textContent = 'GOOD';
+                plasticStatus.className = 'status-value normal';
+            }
+        }
+        
+        function updateGauges() {
+            // In a real application, we would update the gauge visualization
+            // based on the current temperature and humidity values
+        }
+        
+        // Event listeners
+        increaseTempBtn.addEventListener('click', function() {
+            temperature += 3;
+            if (temperature > 45) temperature = 45;
+            updateDisplay();
+        });
+        
+        increaseHumidityBtn.addEventListener('click', function() {
+            humidity += 10;
+            if (humidity > 90) humidity = 90;
+            updateDisplay();
+        });
+        
+        extremeConditionsBtn.addEventListener('click', function() {
+            temperature = 38;
+            humidity = 75;
+            updateDisplay();
+        });
+        
+        resetConditionsBtn.addEventListener('click', function() {
+            temperature = 24;
+            humidity = 45;
+            updateDisplay();
+        });
+        
+        // Initialize display
+        updateDisplay();
+        
+        // Add some visual effects
+        document.querySelectorAll('.panel').forEach(panel => {
+            panel.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
+            
+            panel.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html> 
+
+
+<!-- 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theft Alert System: PIR Simulation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- Base & Background Theme (Vibrant, Lightened) --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            /* VIBRANT GRADIENT: Light Red/Orange/Pink fade, matching the energy of the title bar */
+            background: linear-gradient(135deg, #fceabb 0%, #f8b4b4 100%); 
+            color: #333; /* Dark text for readability */
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        /* --- Main Content Wrapper (Light, Rounded) --- */
+        .main-container-wrapper { 
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95); /* Nearly solid white background for contrast */
+            border-radius: 25px;
+            padding: 30px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-top: 30px; 
+        }
+
+        /* --- TITLE HEADER FIX (Themed Gradient Bar) --- */
+        h1#main-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            padding: 15px 40px;
+            border-radius: 50px; 
+            margin-top: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+
+            /* **VIBRANT TITLE GRADIENT** (Red to White/Orange Fade) */
+            background: linear-gradient(to right, #e74c3c, #ff9800, #ffc107); 
+            box-shadow: 0 8px 20px rgba(255, 75, 43, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .subtitle { 
+            font-size: 1.3rem; color: #555; 
+            margin-bottom: 20px; font-weight: 400; text-align: center;
+        }
+
+        .main-container {
+            display: flex; gap: 30px; 
+            flex-wrap: wrap; justify-content: center; 
+            width: 100%; 
+        }
+
+        /* --- NAVIGATION ICONS (Themed) --- */
+        .top-nav { position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 20; }
+        .nav-icon { 
+            width: 40px; height: 40px; cursor: pointer; border-radius: 50%; padding: 6px; 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); border: 2px solid #f39c12; 
+            background-color: #f1c40f; 
+            display: flex; align-items: center; justify-content: center; 
+            color: #333;
+        }
+        .nav-icon div { font-size: 1.5rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); } 
+
+        /* --- DASHBOARD PANELS (White Interior) --- */
+        .dashboard-panel, .info-panel {
+            min-width: 350px; flex-grow: 1; max-width: 45%; 
+            background: white; /* Solid White Background */
+            border-radius: 20px; padding: 25px; 
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+            color: #333; 
+            display: flex; flex-direction: column; gap: 15px;
+            transition: transform 0.3s ease;
+        }
+        .panel-heading { 
+            font-size: 1.8rem; font-weight: 700; color: #e74c3c; /* Red accent for headings */
+            border-bottom: 2px solid #e0e0e0; 
+            padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;
+        }
+        .sub-heading { font-size: 1.3rem; font-weight: 600; color: #555; margin-top: 15px; }
+
+        /* --- SENSOR & ACTUATOR STATUS BOXES FIX (Embedded White Look) --- */
+        .status-box {
+            padding: 20px; border-radius: 15px; text-align: center;
+            background: #fafafa; /* Very light background for contrast */
+            border: 1px solid #ddd;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            margin-bottom: 10px;
+        }
+        
+        /* PIR Styles */
+        #pir-box { border-left: 5px solid #f39c12; }
+        #pir-box p { color: #555; }
+        #pir-status { font-size: 2.8rem; font-weight: bold; color: #f39c12; transition: all 0.5s ease; }
+        #pir-status.active { color: #e74c3c; animation: pulse 1.5s infinite; }
+        
+        /* Buzzer Styles */
+        #buzzer-box { border-left: 5px solid #3498db; }
+        #buzzer-box p { color: #555; }
+        #buzzer-status { font-size: 2.8rem; font-weight: bold; color: #3498db; transition: all 0.5s ease; }
+        #buzzer-status.active { color: #f64f59; animation: shake 0.5s ease-in-out; }
+
+        /* --- ANIMATION KEYFRAMES --- */
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        /* --- VEERA BOARD IMAGE FIX --- */
+        .diagram-box {
+            width: 100%; height: 200px;
+            background: url("uploaded:Screenshot 2025-11-07 141123.png-116e1005-4b08-4171-8745-f092e071e621") no-repeat center center;
+            background-size: cover; border: 5px solid #ccc;
+            border-radius: 15px; margin-top: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- INFO PANEL STYLING --- */
+        .mascot-area { text-align: center; padding: 10px; margin-bottom: 10px; }
+        .lion-mascot-img { width: 120px; height: 120px; object-fit: contain; content: url("uploaded:Screenshot 2025-11-07 141718.jpg-1a426610-d096-4148-9c4c-3965e6481710"); filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4)); }
+        
+        .info-box { 
+            background: #fff; padding: 20px; border-radius: 15px; margin-bottom: 15px; 
+            border: 1px solid #e0e0e0;
+        }
+        .info-box p { color: #555; line-height: 1.6; }
+        .info-box .sub-heading { color: #e74c3c; } 
+        
+        /* Action Button Styling */
+        #motion-btn {
+            padding: 14px 28px; border: none; border-radius: 50px; font-size: 1.2rem; font-weight: bold;
+            cursor: pointer; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); display: flex; align-items: center;
+            justify-content: center; gap: 8px; background: linear-gradient(to right, #11998e, #38ef7d); 
+            color: white; margin-top: 20px; width: 80%; margin-left: auto; margin-right: auto;
+        }
+        #motion-btn:hover:enabled { 
+            transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        #motion-btn:disabled { background: linear-gradient(to right, #54726f, #6e947c); cursor: not-allowed; transform: none; box-shadow: none; }
+
+        #system-message {
+            text-align: center; margin-top: 15px; font-weight: bold; color: #81c784; font-size: 1.1rem;
+        }
+        
+        /* Footer Button */
+        #continue-btn {
+            display: block; width: 100%; max-width: 400px; padding: 18px;
+            background: linear-gradient(to right, #c471ed, #f64f59); 
+            color: white; border: none; border-radius: 50px; font-size: 1.3rem; font-weight: bold;
+            cursor: pointer; margin-top: 40px; transition: all 0.3s ease; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        #continue-btn:hover {
+            transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; gap: 20px; }
+            .dashboard-panel, .info-panel { max-width: 95%; }
+            h1#main-title { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-nav">
+        <div class="nav-icon"><div>🏠</div></div>
+        <div class="nav-icon"><div>👥</div></div>
+        <div class="nav-icon"><div>🔄</div></div>
+    </div>
+
+    <h1 id="main-title">🚨 THEFT ALERT SYSTEM: PIR SIMULATION 🔔</h1>
+    <div class="subtitle">Interactive demonstration of a motion-activated security circuit.</div>
+    
+    <div class="main-container-wrapper"> 
+        <div class="main-container">
+            <div class="dashboard-panel">
+                <div class="panel-heading">
+                    <i class="fas fa-eye"></i> Sensor Input (PIR)
+                </div>
+
+                <div class="status-box" id="pir-box">
+                    <p style="font-size: 1.1rem; color: #f39c12; font-weight: 600;">PIR STATUS:</p>
+                    <div id="pir-status">NO MOTION</div>
+                    <p style="font-size: 0.8rem; color: #555; margin-top: 5px;">(PIR = Passive Infrared Sensor)</p>
+                </div>
+                
+                <div class="sub-heading">
+                    <i class="fas fa-bell"></i> Actuator Output (Buzzer)
+                </div>
+
+                <div class="status-box" id="buzzer-box">
+                    <p style="font-size: 1.1rem; color: #3498db; font-weight: 600;">BUZZER STATUS:</p>
+                    <div id="buzzer-status">SILENT</div>
+                    <p style="font-size: 0.8rem; color: #555; margin-top: 5px;">(Buzzer activates when motion is HIGH)</p>
+                </div>
+                
+                <div class="panel-heading">
+                    <i class="fas fa-microchip"></i> Microcontroller (Veera)
+                </div>
+                
+                <div class="diagram-box">
+                    </div>
+            </div>
+
+            <div class="info-panel">
+                
+                <div class="mascot-area">
+                    <img class="lion-mascot-img" alt="Lion Mascot Veera"/>
+                </div>
+
+                <div class="info-box">
+                    <div class="sub-heading" style="color: #e74c3c;">PROJECT GOAL: SMART SECURITY 🛡️</div>
+                    <p style="margin-top: 10px;">This system uses a **PIR Sensor** (Input) to detect infrared radiation (body heat/motion). If motion is sensed, the **Veera Board** processes the HIGH signal and activates the **Buzzer** (Output) to sound the alarm.</p>
+                </div>
+
+                <div class="info-box">
+                    <div class="sub-heading" style="color: #e74c3c;">PIR SENSOR LOGIC (The Rule)</div>
+                    <p style="margin-top: 10px;">— **IF** Motion = HIGH $\rightarrow$ **THEN** Buzzer = **ON** (Alarm)</p>
+                    <p>— **IF** Motion = LOW $\rightarrow$ **THEN** Buzzer = **OFF** (Silent)</p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px;">
+                    <button id="motion-btn" onclick="simulateMotion()">SIMULATE MOTION (High → Low)</button>
+                </div>
+
+                <div id="system-message">
+                    System Armed. Click button to test the alarm circuit.
+                </div>
+            </div>
+        </div>
+        
+        <button id="continue-btn" onclick="console.log('Continuing to next experiment')">
+            CONTINUE TO NEXT EXPERIMENT <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+
+    <script>
+        // --- GAME STATE ---
+        let motionDetected = false;
+
+        // --- DOM Elements ---
+        const elements = {
+            pirCard: document.getElementById('pir-box'), 
+            pirStatus: document.getElementById('pir-status'),
+            buzzerCard: document.getElementById('buzzer-box'), 
+            buzzerStatus: document.getElementById('buzzer-status'),
+            motionBtn: document.getElementById('motion-btn'),
+            systemMessage: document.getElementById('system-message')
+        };
+
+        // --- CORE LOGIC ---
+
+        function updateSystemState() {
+            if (motionDetected) {
+                // MOTION HIGH -> ALARM ON
+                elements.pirStatus.textContent = "MOTION HIGH";
+                elements.pirStatus.classList.add('active');
+                
+                elements.buzzerStatus.textContent = "ALARM ON";
+                elements.buzzerStatus.classList.add('active');
+                elements.buzzerCard.classList.add('active'); // Add pulse animation
+                
+                elements.systemMessage.textContent = "🚨 ALARM ACTIVATED! PIR signal is HIGH.";
+                elements.systemMessage.style.color = '#f64f59'; /* Red for alert */
+
+            } else {
+                // MOTION LOW -> ALARM OFF
+                elements.pirStatus.textContent = "NO MOTION";
+                elements.pirStatus.classList.remove('active');
+                
+                elements.buzzerStatus.textContent = "SILENT";
+                elements.buzzerStatus.classList.remove('active');
+                elements.buzzerCard.classList.remove('active'); // Remove pulse animation
+
+                elements.systemMessage.textContent = "System Armed. Ready to Detect.";
+                elements.systemMessage.style.color = '#81c784'; /* Green for armed */
+            }
+        }
+
+        // --- USER ACTION SIMULATION ---
+
+        function simulateMotion() {
+            // 1. Trigger Motion (Sets state to HIGH)
+            motionDetected = true;
+            updateSystemState();
+
+            elements.motionBtn.disabled = true;
+            elements.motionBtn.textContent = "ALARM ACTIVE - STAND BY...";
+
+            // 2. Schedule Auto-Reset (After a short delay, motion stops)
+            setTimeout(() => {
+                motionDetected = false;
+                updateSystemState();
+
+                elements.motionBtn.disabled = false;
+                elements.motionBtn.textContent = "SIMULATE MOTION (High → Low)";
+
+            }, 2500); // Alarm runs for 2.5 seconds
+        }
+        window.simulateMotion = simulateMotion;
+
+        // --- INITIALIZATION ---
+        document.addEventListener("DOMContentLoaded", () => {
+            updateSystemState(); // Set initial 'NO MOTION' state
+        });
+    </script>
+</body>
+</html> -->

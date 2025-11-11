@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theft Alert System: PIR Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #FF6F6F 0%, #FFAAAA 100%);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: clamp(8px, 2vw, 12px);
+            z-index: 20;
+        }
+
+        .top-nav img {
+            width: clamp(36px, 8vw, 42px);
+            height: clamp(36px, 8vw, 42px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+            border-radius: 50%;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .top-nav img:hover {
+            transform: scale(1.12);
+            background: rgba(255, 255, 255, 0.35);
+            filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+        }
+
+        .top-nav img:active {
+            transform: scale(0.98);
+        }
+
+        /* Header */
+        h1 {
+            background: linear-gradient(90deg, #fff 0%, #e74c3c 100%);
+            padding: 15px 40px;
+            border-radius: 15px;
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            font-weight: 800;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            width: 95%;
+            max-width: 1200px;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .panel-heading {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #e74c3c;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Status Boxes */
+        .status-box {
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #pir-box {
+            background-color: #fff8e6;
+            border-left: 5px solid #f39c12;
+        }
+
+        #pir-status {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #f39c12;
+            margin: 10px 0;
+        }
+
+        #pir-status.active {
+            color: #e74c3c;
+        }
+
+        #buzzer-box {
+            background-color: #e8f0ff;
+            border-left: 5px solid #3498db;
+        }
+
+        #buzzer-status {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #3498db;
+            margin: 10px 0;
+        }
+
+        #buzzer-status.active {
+            color: #e74c3c;
+            animation: pulse-red 0.5s infinite alternate;
+        }
+
+        @keyframes pulse-red {
+            from {
+                text-shadow: 0 0 5px #e74c3c;
+            }
+
+            to {
+                text-shadow: 0 0 20px #e74c3c;
+            }
+        }
+
+        /* Microcontroller Section */
+        .microcontroller-section {
+            text-align: center;
+        }
+
+        .diagram-box {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border: 5px solid #fff;
+            border-radius: 15px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Mascot Section */
+        .mascot-section {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .mascot-icon {
+            font-size: 5rem;
+            margin-bottom: 15px;
+        }
+
+        /* Info Sections */
+        .info-section {
+            margin-bottom: 25px;
+        }
+
+        .sub-heading {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 15px;
+        }
+
+        .info-section p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        /* Buttons */
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #motion-btn {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #motion-btn:hover:enabled {
+            background-color: #27ae60;
+        }
+
+        #motion-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        #continue-btn {
+            padding: 15px 40px;
+            background: linear-gradient(90deg, #1abc9c 0%, #00bcd4 100%);
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border-radius: 15px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            margin-top: 20px;
+        }
+
+        #continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        /* System Message */
+        #system-message {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #27ae60;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+
+
+        /* Continue Button */
+        .continue-btn {
+            margin-top: clamp(20px, 4vh, 25px);
+            background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+            color: #333;
+            font-weight: bold;
+            font-size: clamp(0.95rem, 2vw, 1.2rem);
+            padding: clamp(12px, 2vw, 16px) clamp(30px, 5vw, 45px);
+            border-radius: 15px;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        }
+
+        .continue-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .continue-btn img {
+            width: clamp(20px, 3vw, 28px);
+            transition: all 0.3s ease;
+        }
+
+        .continue-btn:hover img {
+            transform: translateX(5px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .top-nav {
+                position: relative;
+                top: 0;
+                right: 0;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-nav">
+        <img src="../../assets/icons/home.png" alt="Home" onclick="goHome()" title="Home" role="button">
+        <img src="../../assets/icons/achievements.png" alt="Achievements" onclick="goAchievements()"
+            title="Achievements" role="button">
+        <img src="../../assets/icons/logout.png" alt="Go back" onclick="goBack()" title="Back" role="button">
+    </div>
+
+    <h1>🚨 SMART HOME ASSISTANT: PIR SIMULATION 🔔</h1>
+
+    <div class="main-container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <!-- Sensor Input Card -->
+            <div class="card">
+                <div class="panel-heading">Sensor Input (PIR)</div>
+                <div class="status-box" id="pir-box">
+                    <p style="font-size: 1.1rem; color: #f39c12; font-weight: 600;">PIR STATUS:</p>
+                    <div id="pir-status">NO MOTION</div>
+                    <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">(PIR = Passive Infrared Sensor)</p>
+                </div>
+            </div>
+
+            <!-- Actuator Output Card -->
+            <div class="card">
+                <div class="panel-heading">Actuator Output (Buzzer)</div>
+                <div class="status-box" id="buzzer-box">
+                    <p style="font-size: 1.1rem; color: #3498db; font-weight: 600;">BUZZER STATUS:</p>
+                    <div id="buzzer-status">SILENT</div>
+                    <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">(Buzzer activates when motion is HIGH)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Microcontroller Card -->
+            <div class="card microcontroller-section">
+                <div class="panel-heading">Microcontroller (Veera)</div>
+                <div class="diagram-box">
+                    VEERA BOARD
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <!-- Mascot Card -->
+            <div class="card mascot-section">
+                <div class="mascot-icon">🦁</div>
+                <h3>VEERA - Your Security Assistant</h3>
+            </div>
+
+            <!-- Project Goal Card -->
+            <div class="card">
+                <div class="info-section">
+                    <div class="sub-heading">PROJECT GOAL: SMART SECURITY 🛡️</div>
+                    <p>This system uses a <strong>PIR Sensor</strong> (Input) to detect infrared radiation (body
+                        heat/motion). If motion is sensed, the <strong>Veera Board</strong> processes the HIGH signal
+                        and activates the <strong>Buzzer</strong> (Output) to sound the alarm.</p>
+                </div>
+
+                <div class="info-section">
+                    <div class="sub-heading">PIR SENSOR LOGIC (The Rule)</div>
+                    <p>— <strong>IF</strong> Motion = HIGH → <strong>THEN</strong> Buzzer = <strong>ON</strong> (Alarm)
+                    </p>
+                    <p>— <strong>IF</strong> Motion = LOW → <strong>THEN</strong> Buzzer = <strong>OFF</strong> (Silent)
+                    </p>
+                </div>
+
+                <div class="button-container">
+                    <button id="motion-btn">SIMULATE MOTION (High → Low)</button>
+                </div>
+
+                <div id="system-message">
+                    System Armed. Click button to test the alarm circuit.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="continue-btn" onclick="navigateToNext()">
+        CONTINUE <img src="../../assets/icons/arrow.png" alt="">
+    </button>
+
+    <script>
+        // Game State
+        let motionDetected = false;
+
+        // DOM Elements
+        const pirStatus = document.getElementById('pir-status');
+        const buzzerStatus = document.getElementById('buzzer-status');
+        const motionBtn = document.getElementById('motion-btn');
+        const systemMessage = document.getElementById('system-message');
+        const continueBtn = document.getElementById('continue-btn');
+
+        // Core Logic
+        function updateSystemState() {
+            if (motionDetected) {
+                // MOTION HIGH -> ALARM ON
+                pirStatus.textContent = "MOTION HIGH";
+                pirStatus.classList.add('active');
+
+                buzzerStatus.textContent = "ALARM ON";
+                buzzerStatus.classList.add('active');
+
+                systemMessage.textContent = "🚨 ALARM ACTIVATED! PIR signal is HIGH.";
+                systemMessage.style.color = '#e74c3c';
+                systemMessage.style.backgroundColor = '#ffeaea';
+
+            } else {
+                // MOTION LOW -> ALARM OFF
+                pirStatus.textContent = "NO MOTION";
+                pirStatus.classList.remove('active');
+
+                buzzerStatus.textContent = "SILENT";
+                buzzerStatus.classList.remove('active');
+
+                systemMessage.textContent = "System Armed. Ready to Detect.";
+                systemMessage.style.color = '#27ae60';
+                systemMessage.style.backgroundColor = '#f8f9fa';
+            }
+        }
+
+        // Navigation functions
+        function goHome() {
+            window.location.href = "../welcome.html";
+        }
+
+        function goAchievements() {
+            window.location.href = "../page4.html";
+        }
+
+        function goBack() {
+            window.location.href = "./C8E3P1.html";
+        }
+
+        // function goBack() {
+        //   window.history.back();
+        // }
+
+        function navigateToNext() {
+            window.location.href = "C8E4P1.html";
+        }
+
+        // User Action Simulation
+        function simulateMotion() {
+            // 1. Trigger Motion (Sets state to HIGH)
+            motionDetected = true;
+            updateSystemState();
+
+            motionBtn.disabled = true;
+            motionBtn.textContent = "ALARM ACTIVE - STAND BY...";
+
+            // 2. Schedule Auto-Reset (After a short delay, motion stops)
+            setTimeout(() => {
+                motionDetected = false;
+                updateSystemState();
+
+                motionBtn.disabled = false;
+                motionBtn.textContent = "SIMULATE MOTION (High → Low)";
+
+            }, 2500); // Alarm runs for 2.5 seconds
+        }
+
+        // Event Listeners
+        motionBtn.addEventListener('click', simulateMotion);
+
+        continueBtn.addEventListener('click', function () {
+            alert('Moving to the next experiment: Advanced Security Systems');
+        });
+
+        // Navigation buttons
+        document.querySelectorAll('.nav-icon').forEach((icon, index) => {
+            icon.addEventListener('click', function () {
+                const actions = ['Home', 'Team', 'Reset'];
+                alert(`Navigating to: ${actions[index]}`);
+            });
+        });
+
+        // Initialization
+        document.addEventListener("DOMContentLoaded", () => {
+            updateSystemState(); // Set initial 'NO MOTION' state
+        });
+    </script>
+</body>
+
+</html>

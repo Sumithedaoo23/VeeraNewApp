@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Central - Smart Security System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1a3a5f;
+            --secondary: #2c5282;
+            --accent: #38b2ac;
+            --danger: #e53e3e;
+            --warning: #dd6b20;
+            --safe: #38a169;
+            --light: #f7fafc;
+            --dark: #2d3748;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #1a202c;
+            color: var(--light);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--primary);
+            padding: 15px 0;
+            border-bottom: 3px solid var(--accent);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+            color: var(--accent);
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .clearance-level {
+            background-color: var(--secondary);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .reputation {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stars {
+            color: gold;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .main-panel {
+            background-color: var(--dark);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #4a5568;
+        }
+
+        .panel-title h2 {
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+
+        .threat-level {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .threat-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: var(--safe);
+        }
+
+        .threat-high {
+            background-color: var(--danger);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .threat-medium {
+            background-color: var(--warning);
+        }
+
+        .building-layout {
+            background-color: #2d3748;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            height: 300px;
+        }
+
+        .floor {
+            position: absolute;
+            background-color: #4a5568;
+            border: 2px solid #718096;
+            border-radius: 5px;
+        }
+
+        .floor-1 {
+            width: 60%;
+            height: 40%;
+            top: 10%;
+            left: 5%;
+        }
+
+        .floor-2 {
+            width: 60%;
+            height: 40%;
+            top: 10%;
+            right: 5%;
+        }
+
+        .sensor {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .sensor:hover {
+            transform: scale(1.2);
+        }
+
+        .sensor-motion {
+            background-color: var(--accent);
+        }
+
+        .sensor-door {
+            background-color: var(--warning);
+        }
+
+        .sensor-sound {
+            background-color: var(--secondary);
+        }
+
+        .sensor-gas {
+            background-color: var(--danger);
+        }
+
+        .sensor-active {
+            box-shadow: 0 0 10px 2px currentColor;
+        }
+
+        .camera-feeds {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .camera-feed {
+            background-color: #2d3748;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .camera-placeholder {
+            height: 120px;
+            background-color: #4a5568;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .camera-placeholder::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
+            animation: scan 3s linear infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .alert-panel {
+            background-color: #2d3748;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .alert {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-high {
+            background-color: rgba(229, 62, 62, 0.2);
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-medium {
+            background-color: rgba(221, 107, 32, 0.2);
+            border-left: 4px solid var(--warning);
+        }
+
+        .alert-low {
+            background-color: rgba(56, 178, 172, 0.2);
+            border-left: 4px solid var(--accent);
+        }
+
+        .alert-icon {
+            font-size: 1.2rem;
+        }
+
+        .alert-info {
+            flex-grow: 1;
+        }
+
+        .alert-time {
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-panel {
+            background-color: var(--dark);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            background-color: #4a5568;
+            border: none;
+            border-radius: 5px;
+            color: var(--light);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .mode-btn.active {
+            background-color: var(--accent);
+            font-weight: bold;
+        }
+
+        .mode-btn:hover:not(.active) {
+            background-color: #5a6578;
+        }
+
+        .sensor-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .sensor-control {
+            background-color: #4a5568;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sensor-status {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: var(--safe);
+        }
+
+        .sensor-status.offline {
+            background-color: #718096;
+        }
+
+        .sensor-status.alert {
+            background-color: var(--danger);
+            animation: pulse 1.5s infinite;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .stats-panel {
+            background-color: var(--dark);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #4a5568;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #4a5568;
+            border-radius: 4px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--accent);
+            border-radius: 4px;
+        }
+
+        .scenario-info {
+            background-color: var(--dark);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .scenario-title {
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .scenario-description {
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .objectives {
+            list-style-type: none;
+        }
+
+        .objective {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .objective.completed {
+            color: var(--safe);
+            text-decoration: line-through;
+        }
+
+        .objective-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #4a5568;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .objective.completed .objective-icon {
+            background-color: var(--safe);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .camera-feeds {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        /* Top Navigation */
+        .top-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: clamp(8px, 2vw, 12px);
+            z-index: 20;
+        }
+
+        /* STYLED: For Font Awesome Icons */
+        .top-nav i {
+            width: clamp(36px, 8vw, 42px);
+            height: clamp(36px, 8vw, 42px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+            border-radius: 50%;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #38b2ac; /* Accent color */
+        }
+
+        .top-nav i:hover {
+            transform: scale(1.12);
+            background: rgba(255, 255, 255, 0.35);
+            filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+        }
+
+        .top-nav i:active {
+            transform: scale(0.98);
+        }
+
+        /* Continue Button */
+        .continue-btn {
+            margin-top: clamp(20px, 4vh, 25px);
+            background: linear-gradient(135deg, var(--light) 0%, #f5f5f5 100%);
+            color: #333;
+            font-weight: bold;
+            font-size: clamp(0.95rem, 2vw, 1.2rem);
+            padding: clamp(12px, 2vw, 16px) clamp(30px, 5vw, 45px);
+            border-radius: 15px;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        }
+
+        .continue-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* STYLED: For Font Awesome icon in continue button */
+        .continue-btn i {
+            width: clamp(20px, 3vw, 28px);
+            transition: all 0.3s ease;
+            color: #38b2ac; /* Accent color */
+            font-size: 1.2rem;
+        }
+
+        .continue-btn:hover i {
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        function goHome() {
+            window.location.href = "../welcome.html";
+        }
+
+        function goAchievements() {
+            window.location.href = "../page4.html";
+        }
+
+        function goBack() {
+            window.location.href = "./C8E8.html";
+        }
+
+        function navigateToNext() {
+            window.location.href = "../page4.html"; // Placeholder next page
+        }
+    </script>
+    
+    <div class="top-nav">
+        <i class="fas fa-home" onclick="goHome()" title="Home" role="button"></i>
+        <i class="fas fa-medal" onclick="goAchievements()" title="Achievements" role="button"></i>
+        <i class="fas fa-sign-out-alt" onclick="goBack()" title="Back" role="button"></i>
+    </div>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">🔒</div>
+                    <h1>Security Central</h1>
+                </div>
+                <div class="user-info">
+                    <div class="clearance-level">Clearance: Level 3</div>
+                    <div class="reputation">
+                        <span>Reputation:</span>
+                        <div class="stars">★★★★☆</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="dashboard">
+            <div class="main-panel">
+                <div class="panel-title">
+                    <h2>Security Command Center</h2>
+                    <div class="threat-level">
+                        <span>Threat Level:</span>
+                        <div class="threat-indicator threat-medium"></div>
+                        <span>Medium</span>
+                    </div>
+                </div>
+
+                <div class="building-layout">
+                    <div class="floor floor-1">
+                        <div class="sensor sensor-motion sensor-active" style="top: 30%; left: 20%;"
+                            title="Motion Sensor - Living Room"></div>
+                        <div class="sensor sensor-door" style="top: 60%; left: 40%;"
+                            title="Door Sensor - Main Entrance"></div>
+                        <div class="sensor sensor-sound" style="top: 40%; left: 70%;"
+                            title="Sound Sensor - Kitchen"></div>
+                    </div>
+                    <div class="floor floor-2">
+                        <div class="sensor sensor-motion" style="top: 30%; left: 30%;"
+                            title="Motion Sensor - Hallway"></div>
+                        <div class="sensor sensor-gas sensor-active" style="top: 60%; left: 60%;"
+                            title="Gas Sensor - Kitchen"></div>
+                        <div class="sensor sensor-door sensor-active" style="top: 20%; left: 70%;"
+                            title="Door Sensor - Balcony"></div>
+                    </div>
+                </div>
+
+                <div class="camera-feeds">
+                    <div class="camera-feed">
+                        <div class="camera-placeholder">Front Entrance</div>
+                        <div>Camera 1 - Front Door</div>
+                    </div>
+                    <div class="camera-feed">
+                        <div class="camera-placeholder">Backyard</div>
+                        <div>Camera 2 - Backyard</div>
+                    </div>
+                    <div class="camera-feed">
+                        <div class="camera-placeholder">Living Room</div>
+                        <div>Camera 3 - Living Room</div>
+                    </div>
+                    <div class="camera-feed">
+                        <div class="camera-placeholder">Kitchen</div>
+                        <div>Camera 4 - Kitchen</div>
+                    </div>
+                </div>
+
+                <div class="alert-panel">
+                    <h3>Recent Alerts</h3>
+                    <div class="alert alert-high">
+                        <div class="alert-icon">🚨</div>
+                        <div class="alert-info">
+                            <strong>Motion detected in Living Room</strong>
+                            <div class="alert-time">2 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="alert alert-medium">
+                        <div class="alert-icon">⚠️</div>
+                        <div class="alert-info">
+                            <strong>Unusual sound in Kitchen</strong>
+                            <div class="alert-time">5 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="alert alert-low">
+                        <div class="alert-icon">🔔</div>
+                        <div class="alert-info">
+                            <strong>Front door opened</strong>
+                            <div class="alert-time">10 minutes ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="control-panel">
+                    <h3>System Controls</h3>
+                    <div class="mode-selector">
+                        <button class="mode-btn active">Practice</button>
+                        <button class="mode-btn">Challenge</button>
+                    </div>
+
+                    <div class="sensor-controls">
+                        <div class="sensor-control">
+                            <span>Motion Sensors</span>
+                            <div class="sensor-status"></div>
+                            <button class="btn btn-secondary">Configure</button>
+                        </div>
+                        <div class="sensor-control">
+                            <span>Door Sensors</span>
+                            <div class="sensor-status"></div>
+                            <button class="btn btn-secondary">Configure</button>
+                        </div>
+                        <div class="sensor-control">
+                            <span>Sound Sensors</span>
+                            <div class="sensor-status alert"></div>
+                            <button class="btn btn-secondary">Configure</button>
+                        </div>
+                        <div class="sensor-control">
+                            <span>Gas Sensors</span>
+                            <div class="sensor-status"></div>
+                            <button class="btn btn-secondary">Configure</button>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary">Create Security Zone</button>
+                        <button class="btn btn-secondary">Run System Diagnostic</button>
+                        <button class="btn btn-danger">Emergency Lockdown</button>
+                    </div>
+                </div>
+
+                <div class="stats-panel">
+                    <h3>Security Statistics</h3>
+                    <div class="stat-item">
+                        <span>Systems Online</span>
+                        <span class="stat-value">12/15</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 80%"></div>
+                    </div>
+
+                    <div class="stat-item">
+                        <span>Zones Secured</span>
+                        <span class="stat-value">8/10</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 80%"></div>
+                    </div>
+
+                    <div class="stat-item">
+                        <span>Threats Neutralized</span>
+                        <span class="stat-value">24</span>
+                    </div>
+
+                    <div class="stat-item">
+                        <span>False Alarms</span>
+                        <span class="stat-value">3</span>
+                    </div>
+
+                    <div class="stat-item">
+                        <span>Response Time</span>
+                        <span class="stat-value">2.4s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenario-info">
+            <h3 class="scenario-title">Current Scenario: Office Building Security</h3>
+            <p class="scenario-description">
+                You are responsible for securing a multi-level office building. Configure sensors to detect intruders,
+                monitor for environmental hazards, and respond to emergencies. Watch out for false alarms caused by
+                cleaning staff or system malfunctions.
+            </p>
+
+            <h4>Objectives:</h4>
+            <ul class="objectives">
+                <li class="objective completed">
+                    <div class="objective-icon">✓</div>
+                    <span>Activate all motion sensors on ground floor</span>
+                </li>
+                <li class="objective">
+                    <div class="objective-icon">2</div>
+                    <span>Create security zones for sensitive areas</span>
+                </li>
+                <li class="objective">
+                    <div class="objective-icon">3</div>
+                    <span>Respond to 3 emergency alerts</span>
+                </li>
+                <li class="objective">
+                    <div class="objective-icon">4</div>
+                    <span>Identify and dismiss 2 false alarms</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <button class="continue-btn" onclick="navigateToNext()">
+        CONTINUE <i class="fas fa-arrow-circle-right"></i>
+    </button>
+
+    <footer>
+        <div class="container">
+            <p>Security Central - Educational Game for Grade 8 Students | Practice smart security system management</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sensor click interaction
+            const sensors = document.querySelectorAll('.sensor');
+            sensors.forEach(sensor => {
+                sensor.addEventListener('click', function() {
+                    this.classList.toggle('sensor-active');
+
+                    // Update sensor status in control panel
+                    const sensorType = this.classList[1].split('-')[1];
+                    const statusElement = document.querySelector(`.sensor-control:nth-child(${getSensorIndex(sensorType)}) .sensor-status`);
+
+                    if (this.classList.contains('sensor-active')) {
+                        statusElement.classList.remove('offline');
+                    } else {
+                        statusElement.classList.add('offline');
+                    }
+                });
+            });
+
+            // Mode selector
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            modeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    modeButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Update scenario based on mode
+                    const scenarioTitle = document.querySelector('.scenario-title');
+                    const scenarioDesc = document.querySelector('.scenario-description');
+
+                    if (this.textContent === 'Practice') {
+                        scenarioTitle.textContent = 'Current Scenario: Office Building Security';
+                        scenarioDesc.textContent = 'You are responsible for securing a multi-level office building. Configure sensors to detect intruders, monitor for environmental hazards, and respond to emergencies. Watch out for false alarms caused by cleaning staff or system malfunctions.';
+                    } else {
+                        scenarioTitle.textContent = 'Current Scenario: Emergency Response Challenge';
+                        scenarioDesc.textContent = 'Multiple threats detected simultaneously! Prioritize alerts and coordinate responses. Some are false alarms (wind, pets, deliveries). You must maintain system integrity while handling emergencies.';
+                    }
+                });
+            });
+
+            // Action buttons
+            const actionButtons = document.querySelectorAll('.action-buttons .btn');
+            actionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const action = this.textContent;
+                    alert(`Action triggered: ${action}`);
+
+                    // Simulate completing an objective
+                    if (action === 'Create Security Zone') {
+                        completeObjective(2);
+                    }
+                });
+            });
+
+            // Helper function to get sensor index for control panel
+            function getSensorIndex(type) {
+                const sensorTypes = ['motion', 'door', 'sound', 'gas'];
+                return sensorTypes.indexOf(type) + 1;
+            }
+
+            // Function to complete objectives
+            function completeObjective(number) {
+                const objective = document.querySelector(`.objective:nth-child(${number})`);
+                if (!objective.classList.contains('completed')) {
+                    objective.classList.add('completed');
+
+                    // Update reputation stars
+                    const stars = document.querySelector('.stars');
+                    if (stars.textContent === '★★★★☆') {
+                        stars.textContent = '★★★★★';
+                    }
+                }
+            }
+
+            // Simulate random alerts
+            setInterval(function() {
+                const alertPanel = document.querySelector('.alert-panel');
+                const alerts = [
+                    { type: 'high', icon: '🚨', message: 'Gas leak detected in Kitchen', time: 'Just now' },
+                    { type: 'medium', icon: '⚠️', message: 'Window sensor triggered', time: '1 minute ago' },
+                    { type: 'low', icon: '🔔', message: 'Back door left unlocked', time: '3 minutes ago' }
+                ];
+
+                const randomAlert = alerts[Math.floor(Math.random() * alerts.length)];
+
+                const alertElement = document.createElement('div');
+                alertElement.className = `alert alert-${randomAlert.type}`;
+                alertElement.innerHTML = `
+                    <div class="alert-icon">${randomAlert.icon}</div>
+                    <div class="alert-info">
+                        <strong>${randomAlert.message}</strong>
+                        <div class="alert-time">${randomAlert.time}</div>
+                    </div>
+                `;
+
+                alertPanel.prepend(alertElement); // Use prepend to put new alerts at the top
+
+                // Remove oldest alert if there are more than 5
+                if (alertPanel.children.length > 5) {
+                    alertPanel.removeChild(alertPanel.lastElementChild);
+                }
+
+                // Update threat level occasionally
+                if (Math.random() > 0.7) {
+                    const threatIndicator = document.querySelector('.threat-indicator');
+                    const threatText = document.querySelector('.threat-level span:last-child');
+
+                    if (threatIndicator.classList.contains('threat-medium')) {
+                        threatIndicator.classList.remove('threat-medium');
+                        threatIndicator.classList.add('threat-high');
+                        threatText.textContent = 'High';
+                    } else {
+                        threatIndicator.classList.remove('threat-high');
+                        threatIndicator.classList.add('threat-medium');
+                        threatText.textContent = 'Medium';
+                    }
+                }
+            }, 15000); // New alert every 15 seconds
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alert Guardian 🎮</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #a855f7, #f472b6, #4ade80);
+      min-height: 100vh;
+      padding: 24px;
+      color: #fff;
+    }
+
+
+    h1, h2, p { margin: 0; }
+    .container { max-width: 800px; margin: auto; text-align: center; }
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 48px;
+      color: #333;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .button, .replay-btn {
+      color: white;
+      padding: 16px 32px;
+      border: none;
+      border-radius: 999px;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    .button {
+      background: linear-gradient(to right, #22c55e, #3b82f6);
+    }
+    .button:hover, .replay-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .replay-btn {
+      background: linear-gradient(to right, #a855f7, #ec4899);
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-box {
+      background: white;
+      color: #333;
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .alert-box {
+      background: #f3f4f6;
+      padding: 32px;
+      border-radius: 24px;
+      border: 4px solid #d1d5db;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .alert-active { animation: pulse 1.2s infinite; }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    .red-alert {
+      background: linear-gradient(to bottom right, #fecaca, #fee2e2);
+      border: 4px solid #ef4444;
+    }
+    .yellow-alert {
+      background: linear-gradient(to bottom right, #fef9c3, #fef08a);
+      border: 4px solid #facc15;
+    }
+    .result-box {
+      background: linear-gradient(to right, #fed7aa, #fbcfe8);
+      border-radius: 16px;
+      padding: 32px;
+      margin: 24px 0;
+    }
+
+    /* Top Navigation */
+    .top-nav {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: clamp(8px, 2vw, 12px);
+      z-index: 20;
+    }
+
+    .top-nav img {
+      width: clamp(36px, 8vw, 42px);
+      height: clamp(36px, 8vw, 42px);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+      border-radius: 50%;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .top-nav img:hover {
+      transform: scale(1.12);
+      background: rgba(255, 255, 255, 0.35);
+      filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+    }
+
+    .top-nav img:active {
+      transform: scale(0.98);
+    }
+
+    /* Continue Button */
+    .continue-btn {
+      margin-top: clamp(20px, 4vh, 25px);
+      background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+      color: #333;
+      font-weight: bold;
+      font-size: clamp(0.95rem, 2vw, 1.2rem);
+      padding: clamp(12px, 2vw, 16px) clamp(30px, 5vw, 45px);
+      border-radius: 15px;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .continue-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+    }
+
+    .continue-btn:active {
+      transform: translateY(-1px);
+    }
+    
+    .continue-btn img {
+      width: clamp(20px, 3vw, 28px);
+      transition: all 0.3s ease;
+    }
+
+    .continue-btn:hover img {
+      transform: translateX(5px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+    <img src="../../assets/icons/home.png" alt="Home" onclick="goHome()" title="Home" role="button">
+    <img src="../../assets/icons/achievements.png" alt="Achievements" onclick="goAchievements()" title="Achievements" role="button">
+    <img src="../../assets/icons/logout.png" alt="Go back" onclick="goBack()" title="Back" role="button">
+  </div>
+    <h1 style="font-size: 40px; margin-bottom: 8px;">Alert Guardian 🎮</h1>
+    <p style="opacity:0.9; font-size: 18px; margin-bottom: 32px;">Experiment 7: Reaction Challenge Game</p>
+    <div id="game-area"></div>
+  </div>
+
+  <button class="continue-btn" onclick="navigateToNext()">
+    CONTINUE <img src="../../assets/icons/arrow.png" alt="">
+  </button>
+
+  <script>
+    let gameStarted = false;
+    let score = 0;
+    let gameTime = 30;
+    let soundDetected = false;
+    let lightDetected = false;
+    let combo = 0;
+    let missed = 0;
+    let gameOver = false;
+
+    let timerInterval, alertInterval, missTimeout;
+    const gameArea = document.getElementById('game-area');
+
+    function renderStartScreen() {
+      gameArea.innerHTML = `
+        <div class="card">
+          <div style="font-size:64px;">🎯</div>
+          <h2 style="font-size:28px; font-weight:bold; margin:12px 0;">Alert Guardian Challenge</h2>
+          <p style="margin-bottom:8px;">Test your reflexes and detection skills!</p>
+          <p style="opacity:0.8; margin-bottom:24px;">Respond to sound and light alerts quickly. You have 30 seconds to score the most points!</p>
+          <div style="background:#eff6ff; border-radius:16px; padding:16px; text-align:left; margin-bottom:24px;">
+            <p style="font-weight:bold;">📋 Rules:</p>
+            <ul style="margin-left:20px; line-height:1.6;">
+              <li>✓ Click when you see a sound or light detection</li>
+              <li>✓ Earn 10 points for correct response</li>
+              <li>✓ Build combos for consecutive correct answers</li>
+              <li>✗ Missed alerts reset your combo</li>
+              <li>⏱ Beat the clock in 30 seconds!</li>
+            </ul>
+          </div>
+          <button class="button" onclick="startGame()">▶ Start Game</button>
+        </div>
+      `;
+    }
+
+    function startGame() {
+      gameStarted = true;
+      score = 0;
+      combo = 0;
+      missed = 0;
+      gameTime = 30;
+      gameOver = false;
+      renderGameScreen();
+      startTimer();
+      triggerAlerts();
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        gameTime--;
+        if (gameTime <= 0) {
+          gameTime = 0;
+          endGame();
+        } else renderGameScreen();
+      }, 1000);
+    }
+
+    function triggerAlerts() {
+      clearInterval(alertInterval);
+      alertInterval = setInterval(() => {
+        if (soundDetected || lightDetected) return; // wait until user reacts or misses
+        if (Math.random() > 0.5) soundDetected = true;
+        else lightDetected = true;
+        renderGameScreen();
+        startMissTimer();
+      }, 2500); // increased waiting time
+    }
+
+    function startMissTimer() {
+      clearTimeout(missTimeout);
+      missTimeout = setTimeout(() => {
+        if (soundDetected || lightDetected) {
+          missed++;
+          soundDetected = false;
+          lightDetected = false;
+          combo = 0;
+          renderGameScreen();
+        }
+      }, 4000); // longer reaction window
+    }
+
+    function handleResponse(type) {
+      if (type === 'sound' && soundDetected) {
+        score += 10;
+        combo++;
+        soundDetected = false;
+      } else if (type === 'light' && lightDetected) {
+        score += 10;
+        combo++;
+        lightDetected = false;
+      }
+      renderGameScreen();
+    }
+
+    function endGame() {
+      clearInterval(timerInterval);
+      clearInterval(alertInterval);
+      clearTimeout(missTimeout);
+      gameOver = true;
+      renderGameOver();
+    }
+
+    function resetGame() {
+      gameStarted = false;
+      score = 0;
+      gameTime = 30;
+      combo = 0;
+      missed = 0;
+      gameOver = false;
+      renderStartScreen();
+    }
+
+    function renderGameScreen() {
+      if (!gameStarted || gameOver) return;
+      gameArea.innerHTML = `
+        <div class="stats">
+          <div class="stat-box"><p style="font-size:12px;font-weight:bold;">SCORE</p><p style="font-size:28px;color:#ea580c;">${score}</p></div>
+          <div class="stat-box"><p style="font-size:12px;font-weight:bold;">TIME</p><p style="font-size:28px;color:${gameTime<=5?'#dc2626':'#2563eb'};">${gameTime}s</p></div>
+          <div class="stat-box"><p style="font-size:12px;font-weight:bold;">COMBO</p><p style="font-size:28px;color:#9333ea;">${combo}x</p></div>
+          <div class="stat-box"><p style="font-size:12px;font-weight:bold;">MISSED</p><p style="font-size:28px;color:#dc2626;">${missed}</p></div>
+        </div>
+        ${soundDetected ? `
+          <div class="alert-box red-alert alert-active">
+            <div style="font-size:60px;">🔊</div>
+            <p style="font-size:24px;font-weight:bold;color:#b91c1c;">SOUND DETECTED!</p>
+            <button class="button" style="background:#ef4444;" onclick="handleResponse('sound')">✓ Sound Alert</button>
+          </div>
+        ` : lightDetected ? `
+          <div class="alert-box yellow-alert alert-active">
+            <div style="font-size:60px;">💡</div>
+            <p style="font-size:24px;font-weight:bold;color:#92400e;">LIGHT DETECTED!</p>
+            <button class="button" style="background:#ca8a04;" onclick="handleResponse('light')">✓ Light Alert</button>
+          </div>
+        ` : `
+          <div class="alert-box">
+            <div style="font-size:60px;color:#9ca3af;">🎯</div>
+            <p style="font-size:20px;color:#4b5563;">Waiting for alert...</p>
+            <p style="font-size:14px;color:#6b7280;">Stay focused! ⚡</p>
+          </div>
+        `}
+      `;
+    }
+
+    // Navigation functions
+    function goHome() {
+      window.location.href = "../welcome.html";
+    }
+
+    function goAchievements() {
+      window.location.href = "../page4.html";
+    }
+
+    function goBack() {
+      window.location.href = "./C8E7.html";
+    }
+
+    function navigateToNext() {
+      window.location.href = "C8E8.html";
+    }
+
+    function renderGameOver() {
+      const accuracy = score === 0 ? 0 : Math.round((score / (score + missed * 10)) * 100);
+      let message = '';
+      if (score >= 100) message = "🌟 Outstanding! You're a master observer!";
+      else if (score >= 70) message = "🎉 Great job! Excellent reaction time!";
+      else if (score >= 40) message = "👍 Good effort! Keep practicing!";
+      else message = "💪 Keep trying to improve!";
+
+      gameArea.innerHTML = `
+        <div class="card">
+          <div style="font-size:72px;">🏆</div>
+          <h2 style="font-size:32px;font-weight:bold;">Game Over!</h2>
+          <div class="result-box">
+            <p style="font-size:42px;font-weight:bold;color:#ea580c;">${score} Points</p>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+              <div style="background:white;border-radius:8px;padding:12px;"><p style="font-size:12px;color:#555;">Combo Peak</p><p style="font-size:24px;color:#9333ea;">${combo}x</p></div>
+              <div style="background:white;border-radius:8px;padding:12px;"><p style="font-size:12px;color:#555;">Missed Alerts</p><p style="font-size:24px;color:#dc2626;">${missed}</p></div>
+              <div style="background:white;border-radius:8px;padding:12px;"><p style="font-size:12px;color:#555;">Accuracy</p><p style="font-size:24px;color:#16a34a;">${accuracy}%</p></div>
+            </div>
+          </div>
+          <p style="font-size:22px;font-weight:bold;margin-bottom:24px;">${message}</p>
+          <button class="replay-btn" onclick="resetGame()">↻ Play Again</button>
+        </div>
+      `;
+    }
+
+    renderStartScreen();
+  </script>
+</body>
+</html>

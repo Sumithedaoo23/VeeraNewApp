@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Explorer: Air Safety Monitor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* General Setup */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0093E9 0%, #80D0C7 100%);
+            transition: background 1s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+            color: #333;
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: clamp(8px, 2vw, 12px);
+            z-index: 20;
+        }
+
+        /* STYLED: For Font Awesome Icons */
+        .top-nav i {
+            width: clamp(36px, 8vw, 42px);
+            height: clamp(36px, 8vw, 42px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+            border-radius: 50%;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #0093E9; /* Icon color accent */
+        }
+
+        .top-nav i:hover {
+            transform: scale(1.12);
+            background: rgba(255, 255, 255, 0.35);
+            filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+        }
+
+        .top-nav i:active {
+            transform: scale(0.98);
+        }
+
+        /* Title */
+        h1 {
+            margin-top: 80px;
+            background: linear-gradient(90deg, #fff 0%, #30ff30 100%);
+            padding: 15px 40px;
+            border-radius: 15px;
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            font-weight: 800;
+        }
+
+        /* Content Section - Main Layout */
+        .content {
+            margin-top: 40px;
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 95%;
+            max-width: 1000px;
+        }
+
+        /* Left Panel - Dashboard & Board Image */
+        .left-panel {
+            flex-grow: 1;
+            min-width: 320px;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel-heading {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #007bff;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Sensor and Actuator Cards */
+        .sensor-card {
+            background: #ffffff;
+            padding: 18px;
+            border-radius: 12px;
+            border-left: 6px solid #1abc9c;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Inner Container for LDR Value and Sensor Visual */
+        .ldr-content-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ldr-sensor-image {
+            width: 80px;
+            height: 60px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            text-align: center;
+            line-height: 60px;
+            font-size: 0.8rem;
+            color: #555;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+
+        .sensor-card span {
+            font-weight: 600;
+            color: #1abc9c;
+            font-size: 1.2rem;
+        }
+
+        .data-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #333;
+            display: inline-block;
+        }
+
+        /* Circuit Board Image Placeholder (Takes up the space of the removed boxes) */
+        .board-placeholder {
+            width: 100%;
+            height: 350px;
+            background-color: #e6f7ff; /* Placeholder color */
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+            border: 3px solid #0056b3;
+            /* Placeholder content */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            color: #007bff;
+        }
+
+        /* Right Panel - Mascot, Speech & Components */
+        .content-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            min-width: 320px;
+            max-width: 400px;
+            padding-top: 10px;
+            position: relative;
+        }
+
+        .lion-mascot {
+            font-size: 6rem;
+            margin-bottom: 20px;
+            z-index: 10;
+        }
+
+        .speech {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: #fff;
+            padding: 20px;
+            border-radius: 25px;
+            width: 100%;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: left;
+            font-weight: 500;
+            box-shadow: 0 6px 20px rgba(0, 100, 200, 0.4);
+        }
+
+        .speech::before {
+            content: "";
+            position: absolute;
+            right: 100%;
+            top: 30%;
+            transform: translateY(-50%) rotate(0deg);
+            border-width: 12px;
+            border-style: solid;
+            border-color: transparent #0056b3 transparent transparent;
+        }
+
+        /* Component Icons Section */
+        .component-icons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+            margin-top: 15px;
+            padding: 0 5px;
+        }
+
+        .component-card {
+            padding: 5px;
+            height: 100px;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            font-size: 0.8rem;
+            color: #007bff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .component-card-label {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .component-card-visual {
+            font-size: 1.5rem;
+            color: #f39c12;
+        }
+
+        /* Actuator Styling */
+        .servo-icon {
+            font-size: 3rem;
+            color: #007bff;
+            transition: transform 0.3s ease-in-out, color 0.3s;
+            display: inline-block;
+        }
+
+        .actuator-status p {
+            padding: 0;
+            margin-top: 5px;
+        }
+
+        /* Alert/Animation Classes */
+        @keyframes rotate-fan {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .fan-running {
+            animation: rotate-fan 0.3s linear infinite;
+            color: #ff0000 !important;
+        }
+
+        @keyframes smoke-alert {
+            0% {
+                border-color: orange;
+                box-shadow: 0 0 10px orange;
+            }
+
+            100% {
+                border-color: red;
+                box-shadow: 0 0 15px red;
+            }
+        }
+
+        .alert-active {
+            animation: smoke-alert 0.5s infinite alternate;
+            border-color: red !important;
+        }
+
+        .alert-text {
+            color: red;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* Continue Button */
+        .continue-btn {
+            margin-top: clamp(20px, 4vh, 25px);
+            background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+            color: #333;
+            font-weight: bold;
+            font-size: clamp(0.95rem, 2vw, 1.2rem);
+            padding: clamp(12px, 2vw, 16px) clamp(30px, 5vw, 45px);
+            border-radius: 15px;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        }
+
+        .continue-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* STYLED: For Font Awesome icon in continue button */
+        .continue-btn i {
+            width: clamp(20px, 3vw, 28px);
+            transition: all 0.3s ease;
+            color: #007bff; /* Accent color */
+            font-size: 1.2rem;
+        }
+
+        .continue-btn:hover i {
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-nav">
+        <i class="fas fa-home" onclick="goHome()" title="Home" role="button"></i>
+        <i class="fas fa-medal" onclick="goAchievements()" title="Achievements" role="button"></i>
+        <i class="fas fa-sign-out-alt" onclick="goBack()" title="Back" role="button"></i>
+    </div>
+
+    <h1 id="main-title">🌬️ AIR SAFETY MONITOR : POLLUTION PATROL GAME 💨</h1>
+
+    <div class="content">
+        <div class="left-panel">
+            <div class="panel-heading">
+                Air Quality Dashboard ☁️
+            </div>
+
+            <div class="sensor-display">
+                <div class="sensor-card" id="ldr-card">
+                    <span>LDR (Light) Level: AIR CLARITY</span>
+                    <div class="ldr-content-row">
+                        <div class="data-value" id="ldr-value">80</div>
+                        <div class="ldr-sensor-image" title="Light Dependent Resistor">LDR VISUAL</div>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">(0 = Dense Fog/Smoke, 100 = Clear Air)
+                    </div>
+                </div>
+
+                <div class="sensor-card" id="ir-card">
+                    <span>IR (Proximity) Status: DENSITY CHECK</span>
+                    <div class="data-value" id="ir-status">Clear</div>
+                    <div class="alert-text" id="alert-message" style="display: none;">🚨 DENSE POLLUTION DETECTED!</div>
+                </div>
+            </div>
+
+            <div class="panel-heading">
+                Actuation Status
+            </div>
+            <div class="actuator-status">
+                <div class="servo-icon" id="servo-indicator">🌀</div>
+                <p>Ventilation Fan: <span id="servo-state">Standby (Low Air Density)</span></p>
+            </div>
+
+            <div class="board-placeholder">
+                <i class="fas fa-microchip"></i> CIRCUIT BOARD
+            </div>
+        </div>
+
+        <div class="content-right">
+            <div class="lion-mascot">🦁</div>
+
+            <div class="speech" id="speech">
+                Welcome, Patrol! We monitor air quality. If the IR sensor detects density, the ventilation fan will
+                activate!
+            </div>
+
+            <div class="component-icons">
+                <div class="component-card">
+                    <span class="component-card-visual">💡</span>
+                    <span class="component-card-label">LDR Sensor</span>
+                </div>
+                <div class="component-card">
+                    <span class="component-card-visual">⚫</span>
+                    <span class="component-card-label">IR Sensor</span>
+                </div>
+                <div class="component-card">
+                    <span class="component-card-visual">7-SEG</span>
+                    <span class="component-card-label">Display Status</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="continue-btn" onclick="navigateToNext()">CONTINUE <i class="fas fa-arrow-circle-right"></i></button>
+
+    <script>
+        // ==========================================================
+        // FIXED SCOPE ISSUE: Moved navigation functions to global scope
+        // ==========================================================
+        function goHome() {
+            window.location.href = "../welcome.html";
+        }
+
+        function goAchievements() {
+            window.location.href = "../page4.html";
+        }
+
+        function goBack() {
+            window.location.href = "./C8E1P1.html";
+        }
+
+        function navigateToNext() {
+            window.location.href = "C8E2P1.html";
+        }
+        // ==========================================================
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const body = document.body;
+            const ldrValueDisplay = document.getElementById("ldr-value");
+            const irStatusDisplay = document.getElementById("ir-status");
+            const servoIndicator = document.getElementById("servo-indicator");
+            const servoState = document.getElementById("servo-state");
+            const speechElement = document.getElementById("speech");
+            const irCard = document.getElementById("ir-card");
+            const alertMessage = document.getElementById("alert-message");
+
+            // --- IoT Data Simulation ---
+            let simulatedLDR = 80;
+            let simulatedIR = 0;
+            let isVenting = false;
+
+            function updateData(ldr, ir) {
+                ldr = Math.min(100, Math.max(0, ldr));
+                ldrValueDisplay.textContent = ldr;
+
+                updateGradient(ldr);
+                irStatusDisplay.textContent = ir === 1 ? "DENSE CLOUD" : "Clear";
+
+                updateAlert(ir);
+                updateActuator(ir);
+            }
+
+            // Function to change the background gradient based on LDR (Clarity)
+            function updateGradient(ldr) {
+                let normalized = ldr / 100;
+                let c1, c2;
+
+                if (normalized < 0.4) {
+                    // Polluted/Dense: Darker, grayer background
+                    c1 = '#a9a9a9';
+                    c2 = '#c7b299';
+                } else if (normalized < 0.8) {
+                    // Medium Clarity: Mixed blue/gray
+                    c1 = '#87ceeb';
+                    c2 = '#bdbdbd';
+                } else {
+                    // Clear: Bright blue/teal
+                    c1 = '#0093E9';
+                    c2 = '#80D0C7';
+                }
+
+                body.style.background = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+            }
+
+            // Function to handle the Alert
+            function updateAlert(ir) {
+                if (ir === 1) {
+                    irCard.classList.add("alert-active");
+                    alertMessage.style.display = 'block';
+                    if (!speechElement.textContent.includes("POLLUTION ALERT")) {
+                        typewriter(speechElement, "POLLUTION ALERT! High density detected! Activating fan!");
+                    }
+                } else {
+                    irCard.classList.remove("alert-active");
+                    alertMessage.style.display = 'none';
+                    if (isVenting) {
+                        typewriter(speechElement, "Venting successful. Air is clearing.");
+                        isVenting = false;
+                    } else if (speechElement.textContent.includes("density")) {
+                        typewriter(speechElement, "Air is clear. System standby.");
+                    }
+                }
+            }
+
+            // Function to control the Servo (Ventilation Fan) based on IR
+            function updateActuator(ir) {
+                if (ir === 1) {
+                    // Fan ON: Start rapid rotation animation
+                    servoIndicator.classList.add('fan-running');
+                    servoState.textContent = "VENTILATION FAN ACTIVE! 🔴";
+                    isVenting = true;
+                } else {
+                    // Fan OFF: Stop rotation, reset color
+                    servoIndicator.classList.remove('fan-running');
+                    servoState.textContent = "Standby (Low Air Density)";
+                }
+            }
+
+            function typewriter(element, text, speed = 40) {
+                element.innerHTML = "";
+                let i = 0;
+                let currentText = text;
+                function type() {
+                    if (i < currentText.length) {
+                        element.textContent += currentText.charAt(i);
+                        i++;
+                        setTimeout(type, speed);
+                    }
+                }
+                type();
+            }
+
+            // --- Initialization and Data Loop ---
+
+            setInterval(() => {
+                // LDR: Simulates clarity dropping if pollution is high
+                if (simulatedIR === 1) {
+                    simulatedLDR = Math.max(10, simulatedLDR - (Math.random() * 5 + 1));
+                } else {
+                    simulatedLDR = Math.min(90, simulatedLDR + (Math.random() * 5 - 2));
+                }
+                simulatedLDR = Math.round(simulatedLDR);
+
+                // IR: Simulates pollution appearing (8% chance) or staying (50% chance if already polluted)
+                if (simulatedIR === 0) {
+                    simulatedIR = Math.random() < 0.08 ? 1 : 0;
+                } else {
+                    simulatedIR = Math.random() < 0.5 ? 1 : 0;
+                }
+
+                updateData(simulatedLDR, simulatedIR);
+
+            }, 1500);
+
+            // Initial call
+            updateData(simulatedLDR, simulatedIR);
+        });
+    </script>
+</body>
+
+</html>

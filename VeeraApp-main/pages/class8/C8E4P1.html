@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Theft Alert Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: clamp(8px, 2vw, 12px);
+            z-index: 20;
+        }
+
+        .top-nav img {
+            width: clamp(36px, 8vw, 42px);
+            height: clamp(36px, 8vw, 42px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+            border-radius: 50%;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .top-nav img:hover {
+            transform: scale(1.12);
+            background: rgba(255, 255, 255, 0.35);
+            filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+        }
+
+        .top-nav img:active {
+            transform: scale(0.98);
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+        }
+
+        .museum {
+            background: #ecf0f1;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            height: 300px;
+            border: 3px solid #bdc3c7;
+        }
+
+        .item {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #f39c12;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .item1 {
+            top: 50px;
+            left: 50px;
+        }
+
+        .item2 {
+            top: 50px;
+            right: 50px;
+        }
+
+        .item3 {
+            bottom: 50px;
+            left: 50px;
+        }
+
+        .item4 {
+            bottom: 50px;
+            right: 50px;
+        }
+
+        .thief {
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            background: #2c3e50;
+            border-radius: 5px;
+            bottom: 20px;
+            left: -50px;
+            transition: left 0.5s linear;
+        }
+
+        .sensor {
+            position: absolute;
+            width: 100px;
+            height: 10px;
+            background: rgba(52, 152, 219, 0.3);
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .alarm {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            display: none;
+        }
+
+        .alarm.active {
+            display: block;
+            animation: flash 0.5s infinite;
+        }
+
+        @keyframes flash {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .start-btn {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .detect-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            background: #34495e;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #f1c40f;
+        }
+
+        .message {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 10px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .instructions p {
+            margin-bottom: 10px;
+            color: #7f8c8d;
+        }
+
+        /* Continue Button */
+        .continue-btn {
+            margin-top: clamp(20px, 4vh, 25px);
+            background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+            color: #333;
+            font-weight: bold;
+            font-size: clamp(0.95rem, 2vw, 1.2rem);
+            padding: clamp(12px, 2vw, 16px) clamp(30px, 5vw, 45px);
+            border-radius: 15px;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        }
+
+        .continue-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .continue-btn img {
+            width: clamp(20px, 3vw, 28px);
+            transition: all 0.3s ease;
+        }
+
+        .continue-btn:hover img {
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <h1>🚨 Theft Alerting System</h1>
+        <div class="subtitle">Protect the museum from thieves!</div>
+
+        <div class="top-nav">
+            <img src="../../assets/icons/home.png" alt="Home" onclick="goHome()" title="Home" role="button">
+            <img src="../../assets/icons/achievements.png" alt="Achievements" onclick="goAchievements()"
+                title="Achievements" role="button">
+            <img src="../../assets/icons/logout.png" alt="Go back" onclick="goBack()" title="Back" role="button">
+        </div>
+
+        <div class="score-board">
+            <div class="score-item">
+                <div>Score</div>
+                <div class="score-value" id="score">100</div>
+            </div>
+            <div class="score-item">
+                <div>Items Safe</div>
+                <div class="score-value" id="items-safe">4/4</div>
+            </div>
+            <div class="score-item">
+                <div>Thieves Caught</div>
+                <div class="score-value" id="thieves-caught">0</div>
+            </div>
+        </div>
+
+        <div class="museum" id="museum">
+            <div class="alarm" id="alarm">🚨</div>
+            <div class="sensor"></div>
+            <div class="item item1">💎</div>
+            <div class="item item2">🏆</div>
+            <div class="item item3">👑</div>
+            <div class="item item4">⚱️</div>
+            <div class="thief" id="thief"></div>
+        </div>
+
+        <div class="message" id="message">Thief detected! Click DETECT to catch them!</div>
+
+        <div class="controls">
+            <button class="start-btn" id="start-btn">START GAME</button>
+            <button class="detect-btn" id="detect-btn">DETECT THIEF</button>
+        </div>
+
+        <div class="instructions">
+            <h3>How to Play:</h3>
+            <p>1. Click START GAME to begin</p>
+            <p>2. Watch for thieves trying to steal items</p>
+            <p>3. When you see a thief, click DETECT THIEF</p>
+            <p>4. Catch thieves to earn points</p>
+            <p>5. Protect all 4 items to win!</p>
+        </div>
+
+        <button class="continue-btn" onclick="navigateToNext()">
+            CONTINUE <img src="../../assets/icons/arrow.png" alt="">
+        </button>
+    </div>
+
+    <script>
+        // Game elements
+        const startBtn = document.getElementById('start-btn');
+        const detectBtn = document.getElementById('detect-btn');
+        const thief = document.getElementById('thief');
+        const alarm = document.getElementById('alarm');
+        const message = document.getElementById('message');
+        const scoreElement = document.getElementById('score');
+        const itemsSafeElement = document.getElementById('items-safe');
+        const thievesCaughtElement = document.getElementById('thieves-caught');
+
+        // Game variables
+        let score = 100;
+        let itemsSafe = 4;
+        let thievesCaught = 0;
+        let gameActive = false;
+        let thiefMoving = false;
+
+        // Start the game
+        startBtn.addEventListener('click', function () {
+            if (!gameActive) {
+                gameActive = true;
+                startBtn.textContent = "RESTART GAME";
+                score = 100;
+                itemsSafe = 4;
+                thievesCaught = 0;
+                updateDisplay();
+                message.style.display = 'none';
+                startThief();
+            } else {
+                // Restart game
+                location.reload();
+            }
+        });
+
+        // Navigation functions
+        function goHome() {
+            window.location.href = "../welcome.html";
+        }
+
+        function goAchievements() {
+            window.location.href = "../page4.html";
+        }
+
+        function goBack() {
+            window.location.href = "./C8E4.html";
+        }
+
+        function navigateToNext() {
+            window.location.href = "C8E5.html";
+        }
+
+        // Detect thief button
+        detectBtn.addEventListener('click', function () {
+            if (!gameActive) {
+                alert("Please start the game first!");
+                return;
+            }
+
+            if (thiefMoving) {
+                // Caught the thief!
+                thiefMoving = false;
+                alarm.classList.remove('active');
+                message.style.display = 'none';
+                thievesCaught++;
+                score += 20;
+                message.textContent = "Good job! Thief caught! +20 points";
+                message.style.background = "#2ecc71";
+                message.style.display = 'block';
+
+                // Move thief back to start
+                thief.style.left = "-50px";
+
+                updateDisplay();
+
+                // Start next thief after delay
+                setTimeout(startThief, 2000);
+            } else {
+                // False alarm - no thief
+                score -= 10;
+                message.textContent = "False alarm! No thief detected. -10 points";
+                message.style.background = "#e74c3c";
+                message.style.display = 'block';
+                updateDisplay();
+            }
+        });
+
+        // Start a thief approaching
+        function startThief() {
+            if (!gameActive) return;
+
+            thiefMoving = true;
+
+            // Random delay before thief appears
+            setTimeout(() => {
+                if (!gameActive) return;
+
+                // Show alarm and message
+                alarm.classList.add('active');
+                message.textContent = "Thief detected! Click DETECT to catch them!";
+                message.style.background = "#e74c3c";
+                message.style.display = 'block';
+
+                // Move thief toward items
+                thief.style.left = "200px";
+
+                // If thief reaches items
+                setTimeout(() => {
+                    if (thiefMoving) {
+                        // Thief stole an item!
+                        thiefMoving = false;
+                        itemsSafe--;
+                        score -= 30;
+                        alarm.classList.remove('active');
+                        message.textContent = "Oh no! Thief stole an item! -30 points";
+                        message.style.display = 'block';
+
+                        // Remove a random item
+                        const items = document.querySelectorAll('.item');
+                        const randomItem = items[Math.floor(Math.random() * items.length)];
+                        randomItem.style.visibility = 'hidden';
+
+                        // Move thief back
+                        thief.style.left = "-50px";
+
+                        updateDisplay();
+
+                        // Check game over
+                        if (itemsSafe <= 0) {
+                            gameOver();
+                        } else {
+                            // Start next thief after delay
+                            setTimeout(startThief, 2000);
+                        }
+                    }
+                }, 3000);
+            }, Math.random() * 3000 + 2000); // Random delay between 2-5 seconds
+        }
+
+        // Update display
+        function updateDisplay() {
+            scoreElement.textContent = score;
+            itemsSafeElement.textContent = `${itemsSafe}/4`;
+            thievesCaughtElement.textContent = thievesCaught;
+
+            // Change score color based on value
+            if (score >= 80) {
+                scoreElement.style.color = "#2ecc71";
+            } else if (score >= 50) {
+                scoreElement.style.color = "#f39c12";
+            } else {
+                scoreElement.style.color = "#e74c3c";
+            }
+        }
+
+        // Game over
+        function gameOver() {
+            gameActive = false;
+            if (itemsSafe <= 0) {
+                message.textContent = "Game Over! All items stolen! Final Score: " + score;
+            } else {
+                message.textContent = "Game Over! Final Score: " + score;
+            }
+            message.style.display = 'block';
+            alarm.classList.remove('active');
+        }
+
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+
+</html>
